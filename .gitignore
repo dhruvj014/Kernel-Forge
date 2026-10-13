@@ -1,0 +1,35 @@
+# Python / venv
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Build outputs
+build/
+dist/
+*.pyd
+*.so
+*.obj
+*.o
+*.exp
+*.lib
+
+# Project-local caches (HF models and datasets)
+.cache/
+
+# Full Nsight reports are large. Key metrics are summarized in results/ncu_summary.json.
+results/ncu/*.ncu-rep
+results/nsys/
+
+# Private planning docs (build brief and progress log)
+extras/
+
+# Stray logs at the repo root (build logs live in build/)
+/*.log
+
+# Editor / agent tooling
+.vscode/
+.idea/
+.claude/

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=64", "wheel", "torch"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kernelforge"
+version = "0.1.0"
+description = "Hand-written CUDA kernels for LLM inference: fused attention and INT4 dequant-GEMM"
+requires-python = ">=3.11"
+dependencies = ["torch", "numpy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv", "build", "extras"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

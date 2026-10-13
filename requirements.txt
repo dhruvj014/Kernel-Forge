@@ -1,0 +1,15 @@
+# Direct dependencies, pinned to the versions validated in docs/env.md.
+# Install into the project venv only: .\make.ps1 setup
+# The venv must be created from a python.org Python, not Anaconda (see docs/env.md).
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.14.1+cu130
+numpy==2.5.4
+pandas==3.0.6
+matplotlib==3.11.2
+transformers==5.19.0
+datasets==5.1.0
+pytest==9.1.1
+ruff==0.17.0
+ninja==1.13.2
+cmake==4.4.4
+setuptools==78.1.0
