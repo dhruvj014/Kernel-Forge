@@ -29,6 +29,9 @@ def fmt(x, nd=2):
 def section_env(meta: dict) -> str:
     rows = [[k, meta.get(k)] for k in ("gpu", "compute_capability", "sm_count", "driver", "torch",
                                        "torch_cuda", "nvcc", "python", "os", "timestamp")]
+    power = meta.get("power") or {}
+    if power:
+        rows.append(["power", f"AC: {power.get('on_ac_power')}, plan: {power.get('power_plan')}"])
     return "## Environment\n\n" + table(["Field", "Value"], rows)
 
 
@@ -61,6 +64,25 @@ def section_ceilings(hw: dict) -> str:
             + table(["Property", "Value"], dev_rows) + "\n\n" + table(["Measurement", "Result"], meas_rows))
 
 
+def section_power(hw: dict, hw_low: dict) -> str:
+    """Same ceilings measured under the laptop's default 30 W GPU cap, for context."""
+    def row(label, fn):
+        lo, hi = fn(hw_low), fn(hw)
+        return [label, fmt(lo), fmt(hi), f"{hi / lo:.2f}x"]
+
+    rows = [row("DRAM copy (GB/s)", lambda h: h["dram_bandwidth"]["copy"]["gbps"])]
+    for name in hw["gemm"]:
+        if name in hw_low["gemm"]:
+            rows.append(row(f"{name} (TFLOPS)", lambda h, n=name: h["gemm"][n]["best_tflops"]))
+    lo_w = hw_low["clocks_after"].get("status", {}).get("power.draw", "-")
+    hi_w = hw["clocks_after"].get("status", {}).get("power.draw", "-")
+    return ("## Power limit sensitivity\n\n"
+            "Source: `results/hw_ceilings_30w.json` (vendor quiet mode, GPU capped at 30 W) vs "
+            "`results/hw_ceilings.json` (performance mode, 135 W cap). Power draw at the end of each run: "
+            f"{lo_w} vs {hi_w}. Every result in this report uses the 135 W configuration.\n\n"
+            + table(["Measurement", "30 W cap", "135 W cap", "ratio"], rows))
+
+
 def section_attention(att: dict, title: str, src: str) -> str:
     recs = att["records"]
     impls = att["grid"]["impls"]
@@ -91,8 +113,20 @@ def section_attention(att: dict, title: str, src: str) -> str:
                 row.append(f"{naive['median_ms'] / r['median_ms']:.1f}x" if ok else "-")
         rows.append(row)
     p = att["protocol"]
-    note = (f"Median of {p['iters']} timed runs after {p['warmup']} warmup runs. "
-            f"TFLOPS use 4*B*H*N^2*D (halved for causal). `oom` means the 8 GB card ran out of memory.")
+    note = (f"Median of {p['iters']} timed runs after at least {p['warmup']} warmup runs. "
+            "TFLOPS use 4*B*H*N^2*D (halved for causal). `oom` means the run did not fit in the VRAM "
+            "free at startup (sysmem fallback disabled through the allocator cap).")
+    if p.get("launch_guard"):
+        note += " Host launch overhead is excluded by a GPU spin before each timed run."
+    avail = att.get("sdpa_backend_availability")
+    if avail:
+        missing = [k for k, v in avail.items() if not v.startswith("available")]
+        if missing:
+            note += (f" Not available in this torch build: {', '.join(missing)}. "
+                     f"cuDNN version: {att.get('cudnn_version')}.")
+    ceil = att.get("peak_fp16_tc_tflops")
+    if ceil:
+        note += f" Measured FP16 Tensor Core ceiling (FP32 accumulate): {fmt(ceil)} TFLOPS."
     return f"## {title}\n\nSource: `{src}`. {note}\n\n" + table(headers, rows)
 
 
@@ -112,13 +146,19 @@ def section_ncu(ncu: dict) -> str:
     rows = []
     for label, prof in ncu["profiles"].items():
         for k in prof["kernels"]:
-            name = str(k["kernel"]).split("(")[0][:48]
+            name = str(k["kernel"]).split("(")[0].split("::")[-1][:40]
+            smem = (k.get("smem_static_per_block_bytes") or 0) + (k.get("smem_dynamic_per_block_bytes") or 0)
+            conflicts = (k.get("smem_bank_conflicts_ld") or 0) + (k.get("smem_bank_conflicts_st") or 0)
             rows.append([label, name, fmt((k.get("duration_ns") or 0) / 1e3, 1),
-                         fmt(k.get("achieved_occupancy_pct"), 1), k.get("registers_per_thread"),
-                         fmt(k.get("dram_throughput_pct"), 1), fmt(k.get("l2_hit_rate_pct"), 1),
+                         fmt(k.get("achieved_occupancy_pct"), 1), fmt(k.get("registers_per_thread"), 0),
+                         fmt(smem, 0), fmt(k.get("dram_throughput_pct"), 1), fmt(k.get("l1tex_throughput_pct"), 1),
+                         fmt(k.get("l2_hit_rate_pct"), 1),
+                         fmt(conflicts, 0), fmt(k.get("tensor_pipe_active_pct"), 1),
                          ", ".join(s for s, _ in k.get("top_stalls", []))])
-    return ("## Nsight Compute summary\n\nSource: `results/ncu_summary.json`.\n\n"
-            + table(["profile", "kernel", "us", "occupancy %", "regs", "DRAM %", "L2 hit %", "top stalls"], rows))
+    return ("## Nsight Compute summary\n\nSource: `results/ncu_summary.json`. Profiled with `--set full` at the "
+            "base clock `ncu` locks to, so durations are longer than the benchmark medians.\n\n"
+            + table(["profile", "kernel", "us", "occupancy %", "regs", "smem B/block", "DRAM %", "L1/TEX %", "L2 hit %",
+                     "smem bank conflicts", "tensor pipe %", "top stalls"], rows))
 
 
 def main() -> None:
@@ -127,6 +167,9 @@ def main() -> None:
     hw = load_results("hw_ceilings")
     if hw:
         parts += [section_env(hw["meta"]), section_ceilings(hw)]
+        hw_low = load_results("hw_ceilings_30w")
+        if hw_low:
+            parts.append(section_power(hw, hw_low))
     att = load_results("attention_naive")
     if att:
         parts.append(section_attention(att, "Attention: naive baseline vs PyTorch SDPA",
