@@ -93,6 +93,20 @@ Quirks:
 10. **The Windows torch wheel has no FlashAttention SDPA backend** ("Torch was not compiled with flash attention"). `SDPBackend.FLASH_ATTENTION` cannot run on this machine. The SDPA baselines are the memory-efficient backend and the cuDNN fused attention backend (cuDNN 9.24), which run for every dtype, head dim and mask in the grid. Availability is probed and recorded in each attention results file.
 11. **Python launch overhead leaks into sub-millisecond timings.** Enqueueing one SDPA call from Python costs 0.1 to 0.9 ms (cuDNN builds or looks up an execution plan per call), longer than the kernels at N=512. The GPU then idles between the start event and the kernel, and that idle time was counted, with medians up to 5x too high and fp16 vs bf16 differing by 3x on the same shape. `time_cuda` now enqueues a GPU spin (`torch.cuda._sleep`) sized to 5x the measured host enqueue time (minimum 1 ms) before each timed run, which brought the p10 to p90 spread to about 3%.
 
+## Models and datasets (Phase 5)
+
+`scripts/download_assets.py` fetches the original Hugging Face checkpoints (safetensors, config and tokenizer files only) and the WikiText-2 test split into the project-local cache `.cache\hf` (gitignored, about 5 GB). Delete that folder to reclaim the space.
+
+| asset | size | used for |
+|---|---|---|
+| TinyLlama/TinyLlama-1.1B-Chat-v1.0 | 2.05 GiB | perplexity, decode |
+| Qwen/Qwen2.5-1.5B | 2.89 GiB | perplexity, decode |
+| Salesforce/wikitext, wikitext-2-raw-v1 (test) | a few MB | perplexity, decode prompts |
+
+Ollama's models are not usable here: they are llama.cpp GGUF files that are already quantized (Q4_0 / Q4_K_M), so they provide no FP16 baseline and would mean re-quantizing quantized weights. The evaluation scripts set `HF_HUB_OFFLINE=1` and run from the cache.
+
+GPU time share during decode comes from `torch.profiler` (CUPTI), not Nsight Systems. Both read the same kernel activity records, and the profiler needs no system install.
+
 ## Benchmarking conditions
 
 Laptop GPUs boost and throttle with temperature and power source. All benchmarks are run plugged in, with Windows power mode set to "Best performance". Every benchmark JSON records `nvidia-smi` clocks, power state, temperature and throttle reasons at the start and end of the run, so throttled runs are visible in the data.
