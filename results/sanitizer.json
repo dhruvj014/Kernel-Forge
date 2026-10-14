@@ -1,35 +1,70 @@
 {
     "tool_version":  "Version 2025.3.0.0 (build 36260728) (public-release)",
-    "binary":  "build/cmake/kf_sanitize_attn.exe (csrc/micro/sanitize_attn.cu)",
-    "timestamp":  "2026-10-13T22:42:51",
+    "binaries":  {
+                     "attention":  "build\\cmake\\kf_sanitize_attn.exe",
+                     "gemm":  "build\\cmake\\kf_sanitize_gemm.exe"
+                 },
+    "timestamp":  "2026-10-14T08:16:56",
     "tools":  {
-                  "memcheck":  {
-                                   "exit_code":  0,
-                                   "clean":  true,
-                                   "summary":  "ERROR SUMMARY: 0 errors",
-                                   "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
-                                   "seconds":  2.8
-                               },
-                  "racecheck":  {
-                                    "exit_code":  0,
-                                    "clean":  true,
-                                    "summary":  "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)",
-                                    "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
-                                    "seconds":  58.5
+                  "attention":  {
+                                    "memcheck":  {
+                                                     "exit_code":  0,
+                                                     "clean":  true,
+                                                     "summary":  "ERROR SUMMARY: 0 errors",
+                                                     "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
+                                                     "seconds":  3
+                                                 },
+                                    "racecheck":  {
+                                                      "exit_code":  0,
+                                                      "clean":  true,
+                                                      "summary":  "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)",
+                                                      "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
+                                                      "seconds":  59.8
+                                                  },
+                                    "synccheck":  {
+                                                      "exit_code":  0,
+                                                      "clean":  true,
+                                                      "summary":  "ERROR SUMMARY: 0 errors",
+                                                      "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
+                                                      "seconds":  2.5
+                                                  },
+                                    "initcheck":  {
+                                                      "exit_code":  0,
+                                                      "clean":  true,
+                                                      "summary":  "ERROR SUMMARY: 0 errors",
+                                                      "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
+                                                      "seconds":  2.6
+                                                  }
                                 },
-                  "synccheck":  {
-                                    "exit_code":  0,
-                                    "clean":  true,
-                                    "summary":  "ERROR SUMMARY: 0 errors",
-                                    "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
-                                    "seconds":  2.5
-                                },
-                  "initcheck":  {
-                                    "exit_code":  0,
-                                    "clean":  true,
-                                    "summary":  "ERROR SUMMARY: 0 errors",
-                                    "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
-                                    "seconds":  2.5
-                                }
+                  "gemm":  {
+                               "memcheck":  {
+                                                "exit_code":  0,
+                                                "clean":  true,
+                                                "summary":  "ERROR SUMMARY: 0 errors",
+                                                "workload":  "kf_sanitize_gemm: 24 kernel runs, worst rel err 4.021e-04 -\u003e OK",
+                                                "seconds":  2.8
+                                            },
+                               "racecheck":  {
+                                                 "exit_code":  0,
+                                                 "clean":  true,
+                                                 "summary":  "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)",
+                                                 "workload":  "kf_sanitize_gemm: 24 kernel runs, worst rel err 4.021e-04 -\u003e OK",
+                                                 "seconds":  3.9
+                                             },
+                               "synccheck":  {
+                                                 "exit_code":  0,
+                                                 "clean":  true,
+                                                 "summary":  "ERROR SUMMARY: 0 errors",
+                                                 "workload":  "kf_sanitize_gemm: 24 kernel runs, worst rel err 4.021e-04 -\u003e OK",
+                                                 "seconds":  2.8
+                                             },
+                               "initcheck":  {
+                                                 "exit_code":  0,
+                                                 "clean":  true,
+                                                 "summary":  "ERROR SUMMARY: 0 errors",
+                                                 "workload":  "kf_sanitize_gemm: 24 kernel runs, worst rel err 4.021e-04 -\u003e OK",
+                                                 "seconds":  2.8
+                                             }
+                           }
               }
 }

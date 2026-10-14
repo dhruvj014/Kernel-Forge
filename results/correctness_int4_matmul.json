@@ -1,0 +1,75 @@
+{
+  "suite": "int4_matmul",
+  "total_cases": 4,
+  "passed_cases": 4,
+  "worst_by_dtype": {
+    "float16": {
+      "max_abs_err": 0.00148773193359375,
+      "max_rel_err": 0.0004009400428434591,
+      "cases": 4
+    }
+  },
+  "rel_err_definition": "max|out - ref| / max|ref| over the whole output tensor",
+  "cases": [
+    {
+      "case": "dispatch",
+      "dtype": "float16",
+      "shape": [
+        1,
+        2048,
+        2048
+      ],
+      "causal": false,
+      "group": 128,
+      "max_abs_err": 0.0009732246398925781,
+      "max_rel_err": 0.0003098104570212749,
+      "atol": 0.006282710075378418,
+      "passed": true
+    },
+    {
+      "case": "dispatch",
+      "dtype": "float16",
+      "shape": [
+        8,
+        2048,
+        2048
+      ],
+      "causal": false,
+      "group": 128,
+      "max_abs_err": 0.0014407634735107422,
+      "max_rel_err": 0.0004009400428434591,
+      "atol": 0.007186927318572998,
+      "passed": true
+    },
+    {
+      "case": "dispatch",
+      "dtype": "float16",
+      "shape": [
+        9,
+        2048,
+        2048
+      ],
+      "causal": false,
+      "group": 128,
+      "max_abs_err": 0.0013434886932373047,
+      "max_rel_err": 0.0003634536312178225,
+      "atol": 0.007392902851104737,
+      "passed": true
+    },
+    {
+      "case": "dispatch",
+      "dtype": "float16",
+      "shape": [
+        128,
+        2048,
+        2048
+      ],
+      "causal": false,
+      "group": 128,
+      "max_abs_err": 0.00148773193359375,
+      "max_rel_err": 0.0003474292739229275,
+      "atol": 0.008564229011535645,
+      "passed": true
+    }
+  ]
+}
