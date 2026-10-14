@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timestamp": "2026-10-13T22:54:00",
+    "timestamp": "2026-10-14T10:40:39",
     "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
     "compute_capability": "8.9",
     "sm_count": 24,
@@ -60,51 +60,51 @@
       "label": "v2 (WMMA)",
       "impl": "attn_v2_base",
       "ncu_profile": "v2_base_fp16",
-      "median_ms": 3.4652159214019775,
-      "tflops": 9.91561251805011,
+      "median_ms": 3.4400960206985474,
+      "tflops": 9.98801724174632,
       "dram_bytes": 93289600.0,
       "intensity_flop_per_byte": 368.31263472026893,
-      "pct_of_tc_peak": 31.9776899525525
+      "pct_of_tc_peak": 32.21119401508447
     },
     {
       "label": "v2 + conflict-free",
       "impl": "attn_v2",
       "ncu_profile": "v2_layout_fp16",
-      "median_ms": 3.321344017982483,
-      "tflops": 10.345130821128091,
+      "median_ms": 3.30239999294281,
+      "tflops": 10.40447506099393,
       "dram_bytes": 56793984.0,
       "intensity_flop_per_byte": 604.9890489809625,
-      "pct_of_tc_peak": 33.362879531085476
+      "pct_of_tc_peak": 33.55426374456146
     },
     {
       "label": "v3 (+cp.async)",
       "impl": "attn_v3",
       "ncu_profile": "v3_fp16",
-      "median_ms": 3.0156800746917725,
-      "tflops": 11.393694794203874,
+      "median_ms": 3.0146560668945312,
+      "tflops": 11.39756496448193,
       "dram_bytes": 57105024.0,
       "intensity_flop_per_byte": 601.6937908650559,
-      "pct_of_tc_peak": 36.74448138022951
+      "pct_of_tc_peak": 36.7569626167633
     },
     {
       "label": "v4 (mma.sync)",
       "impl": "attn_v4",
       "ncu_profile": "v4_fp16",
-      "median_ms": 1.2922879457473755,
-      "tflops": 26.588299056003777,
-      "dram_bytes": 34677120.0,
-      "intensity_flop_per_byte": 990.8475204399904,
-      "pct_of_tc_peak": 85.74683430104727
+      "median_ms": 1.299456000328064,
+      "tflops": 26.44163277504237,
+      "dram_bytes": 34191104.0,
+      "intensity_flop_per_byte": 1004.9321123997634,
+      "pct_of_tc_peak": 85.27383791776381
     },
     {
       "label": "SDPA cuDNN",
       "impl": "sdpa_cudnn",
       "ncu_profile": "sdpa_cudnn_fp16",
-      "median_ms": 1.2743840217590332,
-      "tflops": 26.96184021561509,
+      "median_ms": 1.270736038684845,
+      "tflops": 27.039241291653926,
       "dram_bytes": 34237952.0,
       "intensity_flop_per_byte": 1003.5570576183997,
-      "pct_of_tc_peak": 86.95149849751756
+      "pct_of_tc_peak": 87.20111571552181
     }
   ],
   "plot": "results/plots/roofline.png"

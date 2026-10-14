@@ -1,5 +1,48 @@
 {
   "kernels": {
+    "_ZN2kf7gemm_tc22dequant_gemm_tc_kernelILi2ELi2ELi2ELi4EEEvPK6__halfPKjS4_PS2_Pfiiiii": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 108,
+      "barriers": 1,
+      "smem_static_bytes": 28672,
+      "cmem0_bytes": 412,
+      "demangled": "void kf::gemm_tc::dequant_gemm_tc_kernel<(int)2, (int)2, (int)2, (int)4>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)"
+    },
+    "_ZN2kf7gemm_tc22dequant_gemm_tc_kernelILi2ELi2ELi1ELi4EEEvPK6__halfPKjS4_PS2_Pfiiiii": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 84,
+      "barriers": 1,
+      "smem_static_bytes": 20480,
+      "cmem0_bytes": 412,
+      "demangled": "void kf::gemm_tc::dequant_gemm_tc_kernel<(int)2, (int)2, (int)1, (int)4>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)"
+    },
+    "_ZN2kf7gemm_tc22dequant_gemm_tc_kernelILi1ELi4ELi1ELi2EEEvPK6__halfPKjS4_PS2_Pfiiiii": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 70,
+      "barriers": 1,
+      "smem_static_bytes": 16384,
+      "cmem0_bytes": 412,
+      "demangled": "void kf::gemm_tc::dequant_gemm_tc_kernel<(int)1, (int)4, (int)1, (int)2>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)"
+    },
+    "_ZN2kf7gemm_tc13splitk_reduceEPKfP6__halfiy": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 35,
+      "barriers": 0,
+      "cmem0_bytes": 384,
+      "demangled": "kf::gemm_tc::splitk_reduce(const float *, __half *, int, unsigned long long)"
+    },
     "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a9pv_kernelIfEEvPKfPKT_PS3_iib": {
       "arch": "sm_89",
       "stack_bytes": 0,
@@ -70,49 +113,6 @@
       "smem_static_bytes": 128,
       "cmem0_bytes": 364,
       "demangled": "<unnamed>::softmax_rows_kernel(float *, int)"
-    },
-    "_ZN2kf7gemm_tc22dequant_gemm_tc_kernelILi2ELi2ELi2ELi4EEEvPK6__halfPKjS4_PS2_Pfiiiii": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 108,
-      "barriers": 1,
-      "smem_static_bytes": 28672,
-      "cmem0_bytes": 412,
-      "demangled": "void kf::gemm_tc::dequant_gemm_tc_kernel<(int)2, (int)2, (int)2, (int)4>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)"
-    },
-    "_ZN2kf7gemm_tc22dequant_gemm_tc_kernelILi2ELi2ELi1ELi4EEEvPK6__halfPKjS4_PS2_Pfiiiii": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 84,
-      "barriers": 1,
-      "smem_static_bytes": 20480,
-      "cmem0_bytes": 412,
-      "demangled": "void kf::gemm_tc::dequant_gemm_tc_kernel<(int)2, (int)2, (int)1, (int)4>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)"
-    },
-    "_ZN2kf7gemm_tc22dequant_gemm_tc_kernelILi1ELi4ELi1ELi2EEEvPK6__halfPKjS4_PS2_Pfiiiii": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 70,
-      "barriers": 1,
-      "smem_static_bytes": 16384,
-      "cmem0_bytes": 412,
-      "demangled": "void kf::gemm_tc::dequant_gemm_tc_kernel<(int)1, (int)4, (int)1, (int)2>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)"
-    },
-    "_ZN2kf7gemm_tc13splitk_reduceEPKfP6__halfiy": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 35,
-      "barriers": 0,
-      "cmem0_bytes": 384,
-      "demangled": "kf::gemm_tc::splitk_reduce(const float *, __half *, int, unsigned long long)"
     },
     "_ZN2kf4gemv19dequant_gemv_kernelILi8EEEvPK6__halfPK5uint4S4_PS2_iii": {
       "arch": "sm_89",
@@ -193,166 +193,6 @@
       "barriers": 0,
       "cmem0_bytes": 396,
       "demangled": "void kf::gemv::dequant_gemv_kernel<(int)1>(const __half *, const uint4 *, const __half *, __half *, int, int, int)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 184,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 174,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 166,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 167,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 126,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 100,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 126,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 96,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 184,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 174,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 166,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 167,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 126,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 100,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 126,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
-    },
-    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
-      "arch": "sm_89",
-      "stack_bytes": 0,
-      "spill_store_bytes": 0,
-      "spill_load_bytes": 0,
-      "registers": 96,
-      "barriers": 1,
-      "cmem0_bytes": 393,
-      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
     },
     "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li128ELi32ELb1ELi2EEEvPKT_S5_S5_PS3_ifb": {
       "arch": "sm_89",
@@ -473,6 +313,166 @@
       "barriers": 1,
       "cmem0_bytes": 393,
       "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)64, (int)64, (bool)0, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi8ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 182,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi8ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 170,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi4ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 168,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi4ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 167,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi8ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 128,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi8ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 117,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi4ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 128,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi4ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 95,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi8ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 182,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi8ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 170,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi4ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 168,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi4ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 167,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi8ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 128,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi8ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 117,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi4ELi64EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 128,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi4ELi32EEEvPKT_S5_S5_PS3_NS0_5ShapeEfb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 95,
+      "barriers": 1,
+      "cmem0_bytes": 409,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, kf::attn_v4::Shape, float, bool)"
     },
     "_ZN2kf7attn_v114attn_v1_kernelIfLi128ELi128ELi32ELi256EEEvPKT_S4_S4_PS2_ifb": {
       "arch": "sm_89",
