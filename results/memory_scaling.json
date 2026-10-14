@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "timestamp": "2026-10-13T21:47:26",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 24,
+    "driver": "610.60",
+    "torch": "2.14.1+cu130",
+    "torch_cuda": "13.0",
+    "nvcc": "13.0.48",
+    "python": "3.12.0",
+    "os": "Windows-11-10.0.26300-SP0",
+    "kf_fast_math": false,
+    "power": {
+      "on_ac_power": true,
+      "power_plan": "Full Throttle Performance"
+    }
+  },
+  "B": 2,
+  "H": 16,
+  "D": 64,
+  "dtype": "fp16",
+  "vram": {
+    "free_bytes_at_start": 7451181056,
+    "total_bytes": 8585216000,
+    "allocator_cap_bytes": 7182745600
+  },
+  "records": [
+    {
+      "impl": "attn_naive",
+      "N": 512,
+      "input_bytes": 6291456,
+      "output_bytes": 2097152,
+      "peak_extra_bytes": 35651584,
+      "status": "ok",
+      "scores_matrix_bytes": 33554432.0
+    },
+    {
+      "impl": "attn_v1",
+      "N": 512,
+      "input_bytes": 6291456,
+      "output_bytes": 2097152,
+      "peak_extra_bytes": 2097152,
+      "status": "ok"
+    },
+    {
+      "impl": "sdpa_cudnn",
+      "N": 512,
+      "input_bytes": 6291456,
+      "output_bytes": 2097152,
+      "peak_extra_bytes": 2098176,
+      "status": "ok"
+    },
+    {
+      "impl": "attn_naive",
+      "N": 1024,
+      "input_bytes": 12582912,
+      "output_bytes": 4194304,
+      "peak_extra_bytes": 138412032,
+      "status": "ok",
+      "scores_matrix_bytes": 134217728.0
+    },
+    {
+      "impl": "attn_v1",
+      "N": 1024,
+      "input_bytes": 12582912,
+      "output_bytes": 4194304,
+      "peak_extra_bytes": 4194304,
+      "status": "ok"
+    },
+    {
+      "impl": "sdpa_cudnn",
+      "N": 1024,
+      "input_bytes": 12582912,
+      "output_bytes": 4194304,
+      "peak_extra_bytes": 4195328,
+      "status": "ok"
+    },
+    {
+      "impl": "attn_naive",
+      "N": 2048,
+      "input_bytes": 25165824,
+      "output_bytes": 8388608,
+      "peak_extra_bytes": 545259520,
+      "status": "ok",
+      "scores_matrix_bytes": 536870912.0
+    },
+    {
+      "impl": "attn_v1",
+      "N": 2048,
+      "input_bytes": 25165824,
+      "output_bytes": 8388608,
+      "peak_extra_bytes": 8388608,
+      "status": "ok"
+    },
+    {
+      "impl": "sdpa_cudnn",
+      "N": 2048,
+      "input_bytes": 25165824,
+      "output_bytes": 8388608,
+      "peak_extra_bytes": 8389632,
+      "status": "ok"
+    },
+    {
+      "impl": "attn_naive",
+      "N": 4096,
+      "input_bytes": 50331648,
+      "output_bytes": 16777216,
+      "peak_extra_bytes": 2164260864,
+      "status": "ok",
+      "scores_matrix_bytes": 2147483648.0
+    },
+    {
+      "impl": "attn_v1",
+      "N": 4096,
+      "input_bytes": 50331648,
+      "output_bytes": 16777216,
+      "peak_extra_bytes": 16777216,
+      "status": "ok"
+    },
+    {
+      "impl": "sdpa_cudnn",
+      "N": 4096,
+      "input_bytes": 50331648,
+      "output_bytes": 16777216,
+      "peak_extra_bytes": 16778240,
+      "status": "ok"
+    },
+    {
+      "impl": "attn_naive",
+      "N": 8192,
+      "input_bytes": 100663296,
+      "output_bytes": 33554432,
+      "status": "oom",
+      "scores_matrix_bytes": 8589934592.0
+    },
+    {
+      "impl": "attn_v1",
+      "N": 8192,
+      "input_bytes": 100663296,
+      "output_bytes": 33554432,
+      "peak_extra_bytes": 33554432,
+      "status": "ok"
+    },
+    {
+      "impl": "sdpa_cudnn",
+      "N": 8192,
+      "input_bytes": 100663296,
+      "output_bytes": 33554432,
+      "peak_extra_bytes": 33555456,
+      "status": "ok"
+    },
+    {
+      "impl": "attn_naive",
+      "N": 16384,
+      "input_bytes": 201326592,
+      "output_bytes": 67108864,
+      "status": "oom",
+      "scores_matrix_bytes": 34359738368.0
+    },
+    {
+      "impl": "attn_v1",
+      "N": 16384,
+      "input_bytes": 201326592,
+      "output_bytes": 67108864,
+      "peak_extra_bytes": 67108864,
+      "status": "ok"
+    },
+    {
+      "impl": "sdpa_cudnn",
+      "N": 16384,
+      "input_bytes": 201326592,
+      "output_bytes": 67108864,
+      "peak_extra_bytes": 67109888,
+      "status": "ok"
+    }
+  ],
+  "plot": "results\\plots\\memory_scaling.png"
+}

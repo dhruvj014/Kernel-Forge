@@ -50,6 +50,11 @@ SDPA_BACKENDS = {
 def make_impl(name: str, causal: bool):
     if name == "attn_naive":
         return lambda q, k, v: ops.attn_naive(q, k, v, causal=causal)
+    if name == "attn_v1":
+        return lambda q, k, v: ops.flash_attn_v1(q, k, v, causal=causal)
+    if name.startswith("attn_v1_cfg"):
+        cfg = int(name.removeprefix("attn_v1_cfg"))
+        return lambda q, k, v: ops.flash_attn_v1(q, k, v, causal=causal, config=cfg)
     if name in SDPA_BACKENDS:
         backend = SDPA_BACKENDS[name]
 

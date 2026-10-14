@@ -1,0 +1,715 @@
+{
+  "meta": {
+    "timestamp": "2026-10-13T21:01:33",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 24,
+    "driver": "610.60",
+    "torch": "2.14.1+cu130",
+    "torch_cuda": "13.0",
+    "nvcc": "13.0.48",
+    "python": "3.12.0",
+    "os": "Windows-11-10.0.26300-SP0",
+    "kf_fast_math": false,
+    "power": {
+      "on_ac_power": true,
+      "power_plan": "Full Throttle Performance"
+    }
+  },
+  "threads_per_block": 256,
+  "dtype": "fp16",
+  "B": 2,
+  "H": 16,
+  "clocks_start": {
+    "timestamp": "2026-10-13T20:16:11",
+    "clocks": {
+      "clocks": {
+        "graphics": "330 MHz",
+        "sm": "330 MHz",
+        "memory": "405 MHz",
+        "video": "765 MHz"
+      },
+      "applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "default_applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "deferred_clocks": {
+        "memory": "N/A"
+      },
+      "max_clocks": {
+        "graphics": "3105 MHz",
+        "sm": "3105 MHz",
+        "memory": "8001 MHz",
+        "video": "2415 MHz"
+      },
+      "max_customer_boost_clocks": {
+        "graphics": "N/A"
+      },
+      "sm_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "memory_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "clock_policy": {
+        "auto_boost": "N/A",
+        "auto_boost_default": "N/A"
+      }
+    },
+    "status": {
+      "pstate": "P0",
+      "clocks.sm": "330 MHz",
+      "clocks.mem": "405 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "power.draw": "5.42 W",
+      "temperature.gpu": "60",
+      "clocks_throttle_reasons.active": "0x0000000000000001"
+    }
+  },
+  "clocks_end": {
+    "timestamp": "2026-10-13T21:01:33",
+    "clocks": {
+      "clocks": {
+        "graphics": "2565 MHz",
+        "sm": "2565 MHz",
+        "memory": "8001 MHz",
+        "video": "2220 MHz"
+      },
+      "applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "default_applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "deferred_clocks": {
+        "memory": "N/A"
+      },
+      "max_clocks": {
+        "graphics": "3105 MHz",
+        "sm": "3105 MHz",
+        "memory": "8001 MHz",
+        "video": "2415 MHz"
+      },
+      "max_customer_boost_clocks": {
+        "graphics": "N/A"
+      },
+      "sm_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "memory_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "clock_policy": {
+        "auto_boost": "N/A",
+        "auto_boost_default": "N/A"
+      }
+    },
+    "status": {
+      "pstate": "P0",
+      "clocks.sm": "2565 MHz",
+      "clocks.mem": "8001 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "power.draw": "55.50 W",
+      "temperature.gpu": "68",
+      "clocks_throttle_reasons.active": "0x0000000000000000"
+    }
+  },
+  "configs": [
+    {
+      "D": 64,
+      "config": 0,
+      "Br": 32,
+      "Bc": 32,
+      "registers": 71,
+      "smem_bytes": 20864,
+      "blocks_per_sm": 3,
+      "occupancy_pct": 50.0,
+      "limited_by": "registers",
+      "geomean_tflops": 1.4283887808994478,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 5.731328010559082,
+          "tflops": 1.498768623288421,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 2.9726719856262207,
+          "tflops": 1.444817092759471,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 23.69792079925537,
+          "tflops": 1.4499051903776994,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 12.68991994857788,
+          "tflops": 1.3538201386310003,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 96.58777236938477,
+          "tflops": 1.4229436097396089,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 48.936960220336914,
+          "tflops": 1.4042448984692348,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 64,
+      "config": 1,
+      "Br": 32,
+      "Bc": 64,
+      "registers": 72,
+      "smem_bytes": 33280,
+      "blocks_per_sm": 2,
+      "occupancy_pct": 33.333333333333336,
+      "limited_by": "smem",
+      "geomean_tflops": 1.4919204391016583,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 5.4824957847595215,
+          "tflops": 1.5667927398829327,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 2.8876800537109375,
+          "tflops": 1.487341816307027,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 22.649344444274902,
+          "tflops": 1.5170301486003999,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 12.227583885192871,
+          "tflops": 1.4050093088957791,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 91.01312255859375,
+          "tflops": 1.5101004075925155,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 46.74201583862305,
+          "tflops": 1.4701864158630684,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 64,
+      "config": 2,
+      "Br": 64,
+      "Bc": 32,
+      "registers": 96,
+      "smem_bytes": 33408,
+      "blocks_per_sm": 2,
+      "occupancy_pct": 33.333333333333336,
+      "limited_by": "smem",
+      "geomean_tflops": 1.5746357765858223,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 5.355520009994507,
+          "tflops": 1.603940341174976,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 2.8748799562454224,
+          "tflops": 1.4939640476707778,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 21.775360107421875,
+          "tflops": 1.5779182616726917,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 11.978240013122559,
+          "tflops": 1.4342565489737127,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 80.9323501586914,
+          "tflops": 1.6981955077606294,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 41.51705551147461,
+          "tflops": 1.6552107534939973,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 64,
+      "config": 3,
+      "Br": 64,
+      "Bc": 64,
+      "registers": 96,
+      "smem_bytes": 49920,
+      "blocks_per_sm": 2,
+      "occupancy_pct": 33.333333333333336,
+      "limited_by": "smem",
+      "geomean_tflops": 1.6873717088458413,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 4.972544193267822,
+          "tflops": 1.7274727499917755,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 2.7586560249328613,
+          "tflops": 1.5569057023354438,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 19.61369514465332,
+          "tflops": 1.7518238207840422,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 10.481152057647705,
+          "tflops": 1.6391203075299812,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 78.48395538330078,
+          "tflops": 1.7511726161197427,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 40.26419258117676,
+          "tflops": 1.706714386422985,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 64,
+      "config": 4,
+      "Br": 128,
+      "Bc": 32,
+      "registers": 123,
+      "smem_bytes": 58496,
+      "blocks_per_sm": 1,
+      "occupancy_pct": 16.666666666666668,
+      "limited_by": "smem",
+      "geomean_tflops": 1.6150462953458062,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 5.058559894561768,
+          "tflops": 1.69809882081947,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 3.051008105278015,
+          "tflops": 1.4077207099417497,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 20.387328147888184,
+          "tflops": 1.6853477865641333,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 11.109375953674316,
+          "tflops": 1.5464297234731648,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 79.57965087890625,
+          "tflops": 1.7270615283439275,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 41.665536880493164,
+          "tflops": 1.6493121625458487,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 128,
+      "config": 0,
+      "Br": 32,
+      "Bc": 32,
+      "registers": 79,
+      "smem_bytes": 37248,
+      "blocks_per_sm": 2,
+      "occupancy_pct": 33.333333333333336,
+      "limited_by": "smem",
+      "geomean_tflops": 1.525816178738661,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 11.199487686157227,
+          "tflops": 1.5339870595361815,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 5.856256008148193,
+          "tflops": 1.4667962910173769,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 44.426239013671875,
+          "tflops": 1.5468218391129631,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 22.740480422973633,
+          "tflops": 1.5109504165658691,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 176.45977783203125,
+          "tflops": 1.5577368980122546,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 89.2221450805664,
+          "tflops": 1.5404130145928958,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 128,
+      "config": 1,
+      "Br": 32,
+      "Bc": 64,
+      "registers": 96,
+      "smem_bytes": 57856,
+      "blocks_per_sm": 1,
+      "occupancy_pct": 16.666666666666668,
+      "limited_by": "smem",
+      "geomean_tflops": 1.5294984708652228,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 11.133952140808105,
+          "tflops": 1.5430162593417684,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 5.920767784118652,
+          "tflops": 1.4508143040233543,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 44.07449531555176,
+          "tflops": 1.5591665030762636,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 22.764543533325195,
+          "tflops": 1.5093532764098918,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 174.69235229492188,
+          "tflops": 1.5734970840620504,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 88.9912338256836,
+          "tflops": 1.5444100229154707,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 128,
+      "config": 2,
+      "Br": 64,
+      "Bc": 32,
+      "registers": 116,
+      "smem_bytes": 57984,
+      "blocks_per_sm": 1,
+      "occupancy_pct": 16.666666666666668,
+      "limited_by": "smem",
+      "geomean_tflops": 1.5946957798366665,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 10.797055721282959,
+          "tflops": 1.5911624082976026,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 5.741055965423584,
+          "tflops": 1.496229028898906,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 41.72492980957031,
+          "tflops": 1.6469644658392697,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 21.88390350341797,
+          "tflops": 1.5700918422818613,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 166.434814453125,
+          "tflops": 1.6515649556085943,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 84.96895980834961,
+          "tflops": 1.6175195481031925,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 128,
+      "config": 3,
+      "Br": 64,
+      "Bc": 64,
+      "registers": 123,
+      "smem_bytes": 82688,
+      "blocks_per_sm": 1,
+      "occupancy_pct": 16.666666666666668,
+      "limited_by": "smem",
+      "geomean_tflops": 1.6601614573624337,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 10.373631954193115,
+          "tflops": 1.6561093799993303,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 5.513727903366089,
+          "tflops": 1.5579177541125868,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 40.08239936828613,
+          "tflops": 1.714455167830397,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 21.022208213806152,
+          "tflops": 1.6344495315879586,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 159.84691619873047,
+          "tflops": 1.7196322173788867,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 81.61587524414062,
+          "tflops": 1.6839732841297566,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "D": 128,
+      "config": 4,
+      "Br": 128,
+      "Bc": 32,
+      "registers": 212,
+      "smem_bytes": 99456,
+      "blocks_per_sm": 1,
+      "occupancy_pct": 16.666666666666668,
+      "limited_by": "smem",
+      "geomean_tflops": 1.6436561240266105,
+      "runs": [
+        {
+          "N": 1024,
+          "causal": false,
+          "median_ms": 10.184703826904297,
+          "tflops": 1.686830513285719,
+          "status": "ok"
+        },
+        {
+          "N": 1024,
+          "causal": true,
+          "median_ms": 5.983232021331787,
+          "tflops": 1.435667973659493,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": false,
+          "median_ms": 40.037376403808594,
+          "tflops": 1.716383112692244,
+          "status": "ok"
+        },
+        {
+          "N": 2048,
+          "causal": true,
+          "median_ms": 21.560319900512695,
+          "tflops": 1.593656241027432,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": false,
+          "median_ms": 155.3750991821289,
+          "tflops": 1.7691245791051193,
+          "status": "ok"
+        },
+        {
+          "N": 4096,
+          "causal": true,
+          "median_ms": 81.68396759033203,
+          "tflops": 1.6825695118201756,
+          "status": "ok"
+        }
+      ]
+    }
+  ],
+  "best": {
+    "64": {
+      "config": 3,
+      "Br": 64,
+      "Bc": 64,
+      "geomean_tflops": 1.6873717088458413
+    },
+    "128": {
+      "config": 3,
+      "Br": 64,
+      "Bc": 64,
+      "geomean_tflops": 1.6601614573624337
+    }
+  }
+}

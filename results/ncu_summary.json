@@ -136,10 +136,65 @@
           "fp32_arith_intensity_flop_per_byte": 27.899630305971957
         }
       ]
+    },
+    "v1_fp16": {
+      "impl": "attn_v1",
+      "shape": "--B 2 --H 16 --N 2048 --D 64 --dtype fp16",
+      "report_file": "v1_fp16.ncu-rep",
+      "total_duration_ns": 21966688.0,
+      "kernels": [
+        {
+          "kernel": "void attn_v1_kernel<__half, 64, 64, 64, 256>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)",
+          "id": 0.0,
+          "duration_ns": 21966688.0,
+          "achieved_occupancy_pct": 32.94,
+          "theoretical_occupancy_pct": 33.33,
+          "registers_per_thread": 96.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 49920.0,
+          "block_size": 256.0,
+          "grid_size": 1024.0,
+          "dram_throughput_pct": 1.03,
+          "memory_throughput_pct": 98.08,
+          "l1tex_throughput_pct": 98.08,
+          "sm_throughput_pct": 98.08,
+          "l2_hit_rate_pct": 94.11,
+          "l1_hit_rate_pct": 3.96,
+          "smem_bank_conflicts_ld": 41821.0,
+          "smem_bank_conflicts_st": 22214836.0,
+          "tensor_pipe_active_pct": 0.0,
+          "shared_ld_warp_inst": 570425344.0,
+          "shared_st_warp_inst": 12713984.0,
+          "smem_wavefronts_pct": 50.81,
+          "fma_pipe_pct": 12.85,
+          "dram_bytes_read": 34046592.0,
+          "dram_bytes_write": 23271424.0,
+          "ffma_thread_inst": 17188782080.0,
+          "fadd_thread_inst": 293863424.0,
+          "fmul_thread_inst": 273154048.0,
+          "top_stalls": [
+            [
+              "mio_throttle",
+              9.99
+            ],
+            [
+              "not_selected",
+              1.38
+            ],
+            [
+              "wait",
+              1.14
+            ]
+          ],
+          "dram_bytes": 57318016.0,
+          "fp32_flops": 34944581632.0,
+          "fp32_arith_intensity_flop_per_byte": 609.661395677059
+        }
+      ]
     }
   },
   "meta": {
-    "timestamp": "2026-10-13T18:26:25",
+    "timestamp": "2026-10-13T21:48:11",
     "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
     "compute_capability": "8.9",
     "sm_count": 24,

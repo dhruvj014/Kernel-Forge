@@ -45,6 +45,14 @@ METRICS = {
     "smem_bank_conflicts_st": ["l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum"],
     "tensor_pipe_active_pct": ["sm__pipe_tensor_op_hmma_cycles_active_v2.avg.pct_of_peak_sustained_active",
                                "sm__pipe_tensor_op_hmma_cycles_active.avg.pct_of_peak_sustained_active"],
+    # Shared-memory pressure: warp-level LDS instructions and the share of peak
+    # shared-memory wavefronts used. Compared against FFMA count in the notes.
+    "shared_ld_warp_inst": ["smsp__sass_inst_executed_op_shared_ld.sum", "smsp__inst_executed_op_shared_ld.sum"],
+    "shared_st_warp_inst": ["smsp__sass_inst_executed_op_shared_st.sum", "smsp__inst_executed_op_shared_st.sum"],
+    "smem_wavefronts_pct": ["l1tex__data_pipe_lsu_wavefronts_mem_shared.sum.pct_of_peak_sustained_elapsed",
+                            "l1tex__data_pipe_lsu_wavefronts_mem_shared.avg.pct_of_peak_sustained_elapsed"],
+    "fma_pipe_pct": ["sm__pipe_fma_cycles_active.avg.pct_of_peak_sustained_active",
+                     "sm__inst_executed_pipe_fma.avg.pct_of_peak_sustained_active"],
     "dram_bytes_read": ["dram__bytes_read.sum"],
     "dram_bytes_write": ["dram__bytes_write.sum"],
     # Not in --set full as plain sums. scripts/run_ncu.ps1 requests them with --metrics.
