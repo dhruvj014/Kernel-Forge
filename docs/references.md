@@ -23,7 +23,9 @@ Papers and repositories that informed the design. Code was written from scratch.
 - FlashAttention: https://github.com/Dao-AILab/flash-attention (optional benchmark baseline)
 - GPTQ: https://github.com/IST-DASLab/gptq
 - AWQ: https://github.com/mit-han-lab/llm-awq
-- Marlin: https://github.com/IST-DASLab/marlin (read for INT4 kernel ideas)
+- Marlin: https://github.com/IST-DASLab/marlin (read for INT4 kernel ideas: offline weight reordering so each thread loads its own mma fragments, listed as future work in docs/phase4-notes.md)
+- NVIDIA FasterTransformer: https://github.com/NVIDIA/FasterTransformer (source of the widely used idea of converting 4-bit integers to fp16 by OR-ing them into the mantissa of a magic constant and subtracting, with an interleaved nibble order; the packing order and unpack code in kernelforge/quantize.py and csrc/gemm/int4.cuh were written independently for this project)
+- Young Jin Kim et al. *Who Says Elephants Can't Run: Bringing Large Scale MoE Models into Cloud Scale Production.* 2022. https://arxiv.org/abs/2211.10017 (describes fast integer-to-fp16 conversion for low-bit weight-only GEMM)
 
 ## Models and data
 

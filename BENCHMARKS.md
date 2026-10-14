@@ -261,6 +261,46 @@ Source: `results/roofline.json` (scripts/plot_roofline.py). Intensity uses DRAM 
 | v4 (mma.sync) | 990.8 | 26.59 | 86% |
 | SDPA cuDNN | 1003.6 | 26.96 | 87% |
 
+## INT4 weight-only GEMM
+
+Source: `results/gemm_final.json` (bench/bench_gemm.py). Group size 128, symmetric INT4 with fp16 scales, fp16 activations. L2 is flushed (by a read) before every timed run. Bandwidth counts packed weights + scales + x + y (fp16 weights for cuBLAS). Measured peaks: copy 234.5 GB/s (the brief's reference), read-only 248.0 GB/s (the real roof of a GEMV, which is almost pure reads).
+
+### Decode (M = 1) per layer shape
+
+| model | layers | N x K | INT4 us | cuBLAS FP16 us | dequant+matmul us | speedup vs cuBLAS | INT4 GB/s | INT4 % copy peak | INT4 % read peak | cuBLAS % copy peak |
+|---|---|---|---|---|---|---|---|---|---|---|
+| tinyllama | q_proj/o_proj | 2048 x 2048 | 13.3 | 38.9 | 1193.1 | 2.92x | 163.1 | 70% | 66% | 92% |
+| tinyllama | k_proj/v_proj | 256 x 2048 | 5.1 | 9.2 | 1083.6 | 1.80x | 53.7 | 23% | 22% | 49% |
+| tinyllama | gate_proj/up_proj | 5632 x 2048 | 28.7 | 97.3 | 1956.4 | 3.39x | 208.0 | 89% | 84% | 101% |
+| tinyllama | down_proj | 2048 x 5632 | 28.7 | 98.3 | 1990.8 | 3.43x | 208.0 | 89% | 84% | 100% |
+| qwen2.5-1.5b | q_proj/o_proj | 1536 x 1536 | 9.2 | 23.6 | 979.5 | 2.56x | 132.7 | 57% | 53% | 86% |
+| qwen2.5-1.5b | k_proj/v_proj | 256 x 1536 | 5.1 | 7.2 | 993.3 | 1.40x | 40.3 | 17% | 16% | 47% |
+| qwen2.5-1.5b | gate_proj/up_proj | 8960 x 1536 | 33.8 | 115.7 | 2240.0 | 3.42x | 210.6 | 90% | 85% | 102% |
+| qwen2.5-1.5b | down_proj | 1536 x 8960 | 33.8 | 116.7 | 2183.8 | 3.45x | 210.6 | 90% | 85% | 101% |
+
+### All 7 linear layers of one decoder layer, by batch M
+
+Sum of per-layer medians (q, k, v, o, gate, up, down). M <= 8 uses the GEMV kernel, M > 8 the Tensor Core GEMM.
+
+| model | M | INT4 fused us | cuBLAS FP16 us | speedup |
+|---|---|---|---|---|
+| tinyllama | 1 | 122.9 | 389.1 | 3.17x |
+| tinyllama | 2 | 126.0 | 399.4 | 3.17x |
+| tinyllama | 4 | 158.7 | 397.3 | 2.50x |
+| tinyllama | 8 | 220.2 | 397.3 | 1.80x |
+| tinyllama | 16 | 227.3 | 407.6 | 1.79x |
+| tinyllama | 32 | 254.0 | 407.6 | 1.60x |
+| tinyllama | 64 | 345.2 | 426.0 | 1.23x |
+| tinyllama | 128 | 531.5 | 547.8 | 1.03x |
+| qwen2.5-1.5b | 1 | 130.0 | 409.6 | 3.15x |
+| qwen2.5-1.5b | 2 | 140.3 | 420.9 | 3.00x |
+| qwen2.5-1.5b | 4 | 181.7 | 422.9 | 2.33x |
+| qwen2.5-1.5b | 8 | 236.6 | 420.9 | 1.78x |
+| qwen2.5-1.5b | 16 | 242.7 | 423.9 | 1.75x |
+| qwen2.5-1.5b | 32 | 247.8 | 438.3 | 1.77x |
+| qwen2.5-1.5b | 64 | 347.1 | 449.5 | 1.29x |
+| qwen2.5-1.5b | 128 | 574.5 | 625.2 | 1.09x |
+
 ## Attention memory vs sequence length
 
 Source: `results/memory_scaling.json`. Extra memory per call beyond the inputs, B=2, H=16, D=64, fp16.
@@ -328,6 +368,24 @@ Source: `results/memory_scaling.json`. Extra memory per call beyond the inputs, 
 | float16 | 112 | 1.21e-03 | 5.17e-04 |
 | bfloat16 | 112 | 1.07e-02 | 3.63e-03 |
 
+**int4_gemm**: 144/144 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 144 | 4.19e-03 | 4.83e-04 |
+
+**int4_gemv**: 132/132 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 132 | 3.42e-03 | 4.32e-04 |
+
+**int4_matmul**: 4/4 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 4 | 1.49e-03 | 4.01e-04 |
+
 ## Nsight Compute summary
 
 Source: `results/ncu_summary.json`. Profiled with `--set full` at the base clock `ncu` locks to, so durations are longer than the benchmark medians.
@@ -343,3 +401,9 @@ Source: `results/ncu_summary.json`. Profiled with `--set full` at the base clock
 | v3_fp16 | void attn_v2_kernel<__half, 64, 64, 1, 2 | 3373.4 | 8.3 | 72 | 80896 | 6.6 | 43.6 | 97.1 | 13908300 | 76.24 | 18.2 | wait, short_scoreboard, math_pipe_throttle |
 | v4_fp16 | void attn_v4_kernel<__half, 64, 8, 64> | 1442.5 | 32.6 | 126 | 49152 | 9.4 | 25.0 | 91.3 | 19337 | 0.00 | 43.6 | math_pipe_throttle, barrier, wait |
 | sdpa_cudnn_fp16 | cudnn_generated_fort_native_sdpa_sm80_fl | 1425.6 | 16.6 | 229 | 73728 | 9.4 | 12.6 | 83.3 | 199 | 0.12 | 44.1 | math_pipe_throttle, barrier, wait |
+| cublas_m1_gate | type kernel<int, int, __half, __half, __ | 97.2 | 23.9 | 168 | 272 | 93.4 | 29.3 | 1.0 | 3267 | 0.07 | 0.0 | long_scoreboard, lg_throttle, wait |
+| gemv_m1_gate | dequant_gemv_kernel<1> | 26.9 | 57.8 | 60 | 0 | 88.8 | 30.8 | 4.2 | 0 | 0.00 | 0.0 | long_scoreboard, wait, not_selected |
+| gemm_m16_gate_bm64 | dequant_gemm_tc_kernel | 70.5 | 22.3 | 108 | 28672 | 36.0 | 36.9 | 52.8 | 155230 | - | 39.3 | math_pipe_throttle, wait, barrier |
+| gemm_m16_gate_bm64 | splitk_reduce | 6.0 | 66.2 | 35 | 0 | 64.8 | 8.7 | 22.1 | 0 | - | 0.0 | long_scoreboard, imc_miss, wait |
+| gemm_m16_gate | void dequant_gemm_tc_kernel<1, 4, 1, 2> | 47.4 | 33.0 | 70 | 16384 | 58.3 | 35.6 | 52.8 | 152046 | - | 14.7 | long_scoreboard, barrier, wait |
+| gemm_m16_gate | splitk_reduce | 6.0 | 69.1 | 35 | 0 | 63.7 | 8.6 | 22.1 | 0 | - | 0.0 | long_scoreboard, imc_miss, wait |

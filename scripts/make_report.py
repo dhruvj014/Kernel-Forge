@@ -285,6 +285,56 @@ def section_roofline(rf: dict) -> str:
             "\n\n" + table(["kernel", "FLOP per DRAM byte", "TFLOPS", "% of TC peak"], rows))
 
 
+LAYER_ORDER = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+
+def section_gemm(gm: dict) -> str:
+    """INT4 fused kernels vs cuBLAS FP16 and PyTorch dequant-then-matmul, per layer shape and M."""
+    ok = [r for r in gm["records"] if r["status"] == "ok"]
+    idx = {(r["model"], r["layer"], r["M"], r["impl"]): r for r in ok}
+    models = list(dict.fromkeys(r["model"] for r in ok))
+    ms = sorted({r["M"] for r in ok})
+    parts = [f"## INT4 weight-only GEMM\n\nSource: `results/gemm_final.json` (bench/bench_gemm.py). Group size "
+             f"{gm['group_size']}, symmetric INT4 with fp16 scales, fp16 activations. L2 is flushed (by a read) "
+             "before every timed run. Bandwidth counts packed weights + scales + x + y (fp16 weights for cuBLAS). "
+             f"Measured peaks: copy {fmt(gm['peak_dram_gbps'], 1)} GB/s (the brief's reference), read-only "
+             f"{fmt(gm.get('peak_dram_read_gbps'), 1)} GB/s (the real roof of a GEMV, which is almost pure reads)."]
+    rows = []
+    for model in models:
+        layers = [lay for lay in dict.fromkeys(r["layer"] for r in ok if r["model"] == model)]
+        for lay in layers:
+            f, c = idx.get((model, lay, 1, "int4_fused")), idx.get((model, lay, 1, "cublas_fp16"))
+            d = idx.get((model, lay, 1, "dequant_matmul"))
+            if not (f and c):
+                continue
+            rows.append([model, lay, f"{f['N']} x {f['K']}", fmt(f["median_ms"] * 1e3, 1), fmt(c["median_ms"] * 1e3, 1),
+                         fmt(d["median_ms"] * 1e3, 1) if d else "-", f"{c['median_ms'] / f['median_ms']:.2f}x",
+                         fmt(f["gbps"], 1), f"{f['pct_of_peak_dram']:.0f}%", f"{f.get('pct_of_read_peak', 0):.0f}%",
+                         f"{c['pct_of_peak_dram']:.0f}%"])
+    parts.append("### Decode (M = 1) per layer shape\n\n" + table(
+        ["model", "layers", "N x K", "INT4 us", "cuBLAS FP16 us", "dequant+matmul us", "speedup vs cuBLAS",
+         "INT4 GB/s", "INT4 % copy peak", "INT4 % read peak", "cuBLAS % copy peak"], rows))
+    # One decoder layer = q, k, v, o, gate, up, down. Shared shapes are benchmarked once and counted per layer.
+    agg = []
+    for model in models:
+        for m in ms:
+            tot = {}
+            for impl in ("int4_fused", "cublas_fp16"):
+                t = 0.0
+                for name in LAYER_ORDER:
+                    rec = next((r for (mo, lay, mm, im), r in idx.items()
+                                if mo == model and mm == m and im == impl and name in lay.split("/")), None)
+                    t = t + rec["median_ms"] if rec and t is not None else None
+                tot[impl] = t
+            if tot["int4_fused"] and tot["cublas_fp16"]:
+                agg.append([model, m, fmt(tot["int4_fused"] * 1e3, 1), fmt(tot["cublas_fp16"] * 1e3, 1),
+                            f"{tot['cublas_fp16'] / tot['int4_fused']:.2f}x"])
+    parts.append("### All 7 linear layers of one decoder layer, by batch M\n\nSum of per-layer medians "
+                 "(q, k, v, o, gate, up, down). M <= 8 uses the GEMV kernel, M > 8 the Tensor Core GEMM.\n\n"
+                 + table(["model", "M", "INT4 fused us", "cuBLAS FP16 us", "speedup"], agg))
+    return "\n\n".join(parts)
+
+
 def section_correctness() -> str | None:
     parts = []
     for path in sorted((REPO_ROOT / "results").glob("correctness_*.json")):
@@ -349,6 +399,9 @@ def main() -> None:
     rf = load_results("roofline")
     if rf:
         parts.append(section_roofline(rf))
+    gm = load_results("gemm_final")
+    if gm:
+        parts.append(section_gemm(gm))
     mem = load_results("memory_scaling")
     if mem:
         parts.append(section_memory(mem))
