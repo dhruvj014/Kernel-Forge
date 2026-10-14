@@ -2,9 +2,11 @@
 
 Every number below is copied from a file in `results/`, named next to it. `BENCHMARKS.md` has the full tables.
 
+**Refreshed in Phase 5.** v4 gained grouped-query attention and KV-cache decode (query length != key length) in Phase 5, so `results/attention_final.json` was re-measured with the committed code and the numbers below are from that run. Changes vs the first Phase 3 run were within run-to-run variation at the representative shape (26.59 then 26.44 TFLOPS).
+
 ## Result in one paragraph
 
-The final kernel (v4, `csrc/attention/attn_v4_kernel.cuh`) runs at **26.6 TFLOPS** at the representative shape (B=2, H=16, N=2048, D=64, fp16): 86% of the measured FP16 Tensor Core ceiling (31.0 TFLOPS), 84x faster than the naive baseline, and 99% of PyTorch's cuDNN fused attention (27.0 TFLOPS) measured in the same run. Across all 40 benchmark configs (N from 512 to 8192, D in {64, 128}, causal and full, fp16 and bf16), v4's throughput is a **geometric mean of 100% of cuDNN** (min 89%, max 120%). It is faster than cuDNN on 16 of the 40 and peaks at **27.5 TFLOPS** (N=4096, D=64, bf16). Sources: `results/attention_final.json`, `results/hw_ceilings.json`.
+The final kernel (v4, `csrc/attention/attn_v4_kernel.cuh`) runs at **26.4 TFLOPS** at the representative shape (B=2, H=16, N=2048, D=64, fp16): 85% of the measured FP16 Tensor Core ceiling (31.0 TFLOPS), 83x faster than the naive baseline, and 98% of PyTorch's cuDNN fused attention (27.0 TFLOPS) measured in the same run. Across all 40 benchmark configs (N from 512 to 8192, D in {64, 128}, causal and full, fp16 and bf16), v4's throughput is a **geometric mean of 100% of cuDNN** (min 82%, max 119%). It is faster than cuDNN on 15 of the 40 and peaks at **27.3 TFLOPS** (N=4096, D=64, fp16). Sources: `results/attention_final.json`, `results/hw_ceilings.json`.
 
 ## What was built
 
@@ -23,10 +25,10 @@ All four share one code path per family, so every ablation step is measured on t
 |---|---|---|---|---|---|
 | naive | 108.44 | 0.32 | 1% | | |
 | v1 (Phase 2, FP32 CUDA cores) | 19.51 | 1.76 | 6% | 5.56x | 5.08x (32 configs) |
-| v2 base: WMMA | 3.465 | 9.92 | 32% | 5.63x | 4.75x |
-| + conflict-free layout | 3.321 | 10.35 | 33% | 1.04x | 1.07x |
-| + cp.async double buffering (v3) | 3.016 | 11.39 | 37% | 1.10x | 1.13x |
-| v4: mma.sync, registers, swizzle, tuned | 1.292 | 26.59 | 86% | 2.33x | 2.47x |
+| v2 base: WMMA | 3.440 | 9.99 | 32% | 5.67x | 4.83x |
+| + conflict-free layout | 3.302 | 10.40 | 34% | 1.04x | 1.06x |
+| + cp.async double buffering (v3) | 3.015 | 11.40 | 37% | 1.10x | 1.12x |
+| v4: mma.sync, registers, swizzle, tuned | 1.299 | 26.44 | 85% | 2.32x | 2.46x |
 
 (naive and v1 come from `attention_naive.json` and `attention_v1.json`. The grid column for v1 covers the 32 configs where naive did not run out of memory.)
 
@@ -40,7 +42,7 @@ All four share one code path per family, so every ablation step is measured on t
 
 **Shared memory and Bc.** D=64 uses Bc=64 (61 KB). At D=128, Bc=64 would need 103,424 bytes, over the 101,376-byte per-block limit, so D=128 uses Bc=32 (76 KB).
 
-**Result.** 9.92 TFLOPS, 5.6x over v1. The Tensor Cores give 3.6x more peak FLOPs than the FP32 pipe, and the MMA reads each fragment once for a 16x16x16 product, which removes v1's one-shared-load-per-FMA bottleneck.
+**Result.** 9.99 TFLOPS, 5.7x over v1. The Tensor Cores give 3.6x more peak FLOPs than the FP32 pipe, and the MMA reads each fragment once for a 16x16x16 product, which removes v1's one-shared-load-per-FMA bottleneck.
 
 **What the profiler said next** (`ncu_summary.json`, profile `v2_base_fp16`): achieved occupancy 8.3% (one 4-warp block per SM, limited by 61 KB of shared memory), tensor pipe active 15%, 13.2M shared-load and 15.2M shared-store bank conflicts, top stalls `wait`, `short_scoreboard`, `long_scoreboard`. All latency stalls with only 4 warps to hide them.
 
@@ -73,7 +75,7 @@ All four share one code path per family, so every ablation step is measured on t
 
 That is FlashAttention-2's partitioning: a warp owns query rows and never shares softmax state, and the only block-level synchronization is around the shared K/V tiles. Shared memory holds just Q (read once) and two K/V stages: 48 KB at the D=64 default instead of v3's 79 KB.
 
-**XOR swizzle instead of padding.** `ldmatrix` reads 8 rows per phase, 16 bytes each. With unpadded 128-byte rows those 8 reads start on the same bank (8-way conflict). Chunk c of row r is stored at chunk position `c ^ (r % 8)` (`attn_v4_tile.cuh`), so the 8 reads land on 8 different 16-byte chunks covering all 32 banks. Unlike padding it costs no shared memory and keeps every chunk 16-byte aligned for `cp.async`. Measured shared-memory bank conflicts at the representative shape: 19k loads and 0 stores (v3: 4.4M and 9.5M).
+**XOR swizzle instead of padding.** `ldmatrix` reads 8 rows per phase, 16 bytes each. With unpadded 128-byte rows those 8 reads start on the same bank (8-way conflict). Chunk c of row r is stored at chunk position `c ^ (r % 8)` (`attn_v4_tile.cuh`), so the 8 reads land on 8 different 16-byte chunks covering all 32 banks. Unlike padding it costs no shared memory and keeps every chunk 16-byte aligned for `cp.async`. Measured shared-memory bank conflicts at the representative shape: 14k loads and 0 stores (v3: 4.4M and 9.5M).
 
 **Tuning** (`results/attention_v4_sweep.json`, fp16, geomean over N in {1024, 2048, 4096} causal and full):
 
@@ -90,19 +92,19 @@ That is FlashAttention-2's partitioning: a warp owns query rows and never shares
 
 Defaults: 8 warps x Bc=64 at D=64, 4 warps x Bc=32 at D=128. At D=128 the O accumulators alone take 64 registers per thread, so bigger tiles push a block to 166 to 184 registers and 64 to 96 KB of shared memory, one block (at most 8 warps) per SM, and the cost of exposed latency outweighs the better reuse. At D=64 the differences are within 12%, and the largest tile wins because each K/V element feeds more MMAs per barrier.
 
-**Result.** 26.59 TFLOPS, 2.33x over v3 at the representative shape and 2.47x over the grid. Profile `v4_fp16` vs `sdpa_cudnn_fp16` (same shape, both at `ncu`'s locked base clock):
+**Result.** 26.44 TFLOPS, 2.32x over v3 at the representative shape and 2.46x over the grid. Profile `v4_fp16` vs `sdpa_cudnn_fp16` (same shape, both at `ncu`'s locked base clock):
 
 | metric | v4 | cuDNN SDPA |
 |---|---|---|
-| duration | 1.443 ms | 1.426 ms |
-| tensor pipe active | 43.6% | 44.2% |
+| duration | 1.450 ms | 1.426 ms |
+| tensor pipe active | 43.3% | 44.2% |
 | top stall | `math_pipe_throttle` | `math_pipe_throttle` |
-| registers per thread | 126 | 229 |
-| achieved occupancy | 32.6% | 16.7% |
+| registers per thread | 128 | 229 |
+| achieved occupancy | 32.7% | 16.7% |
 | shared memory per block | 48 KB | 72 KB |
-| DRAM throughput | 9.4% | 9.4% |
+| DRAM throughput | 9.2% | 9.4% |
 
-Both kernels are now limited by the Tensor Core pipe itself (`math_pipe_throttle`: warps are ready but the pipe is busy). The tensor-pipe metric peaks at the FP16-accumulate rate, and GeForce Ada runs FP32-accumulate MMA at half that rate (`hw_ceilings.json`: 57.1 vs 31.0 TFLOPS), so 43.6% of that peak is about 87% of what an FP32-accumulate kernel can reach. That matches 86% of the measured FP32-accumulate ceiling. cuDNN takes a different point in the design space (229 registers, half the occupancy, bigger tiles) and lands within 1.2% of v4.
+Both kernels are now limited by the Tensor Core pipe itself (`math_pipe_throttle`: warps are ready but the pipe is busy). The tensor-pipe metric peaks at the FP16-accumulate rate, and GeForce Ada runs FP32-accumulate MMA at half that rate (`hw_ceilings.json`: 57.1 vs 31.0 TFLOPS), so 43.3% of that peak is 80% (using the measured 1.84x ratio) to 87% (using a nominal 2x) of what an FP32-accumulate kernel can reach, consistent with v4 running at 85% of the measured FP32-accumulate ceiling. cuDNN takes a different point in the design space (229 registers, half the occupancy, bigger tiles) and lands within 1.7% of v4 under `ncu`.
 
 ## Roofline (`results/roofline.json`, `results/plots/roofline.png`)
 
@@ -110,20 +112,20 @@ Both kernels are now limited by the Tensor Core pipe itself (`math_pipe_throttle
 |---|---|---|---|
 | naive | 13.9 | 0.32 | 1% |
 | v1 | 599.5 | 1.76 | 6% |
-| v2 base | 368.3 | 9.92 | 32% |
-| v2 conflict-free | 605.0 | 10.35 | 33% |
-| v3 | 601.7 | 11.39 | 37% |
-| v4 | 990.8 | 26.59 | 86% |
-| SDPA cuDNN | 1003.6 | 26.96 | 87% |
+| v2 base | 368.3 | 9.99 | 32% |
+| v2 conflict-free | 605.0 | 10.40 | 34% |
+| v3 | 601.7 | 11.40 | 37% |
+| v4 | 1004.9 | 26.44 | 85% |
+| SDPA cuDNN | 1003.6 | 27.04 | 87% |
 
-Intensity uses DRAM bytes measured by `ncu`, so it reflects real traffic (K/V tiles re-read from L2 or DRAM by every query block), not the ideal `Q+K+V+O` minimum. Naive sits on the memory slope at 14 FLOP/byte, below the FP32 ridge (36). Every fused kernel is far right of the Tensor Core ridge (132 FLOP/byte), so from v1 on, the question is never DRAM bandwidth but how close the kernel gets to the compute roof. v1 is pinned under the FP32 roof (8.5 TFLOPS). v2 and v3 break through it but sit about 3x under the Tensor Core roof, latency bound at 8% occupancy. v4 reaches 86%. v4's intensity is higher than v3's because its default tile (Br = 128 rows at D=64) re-reads each K/V tile half as often.
+Intensity uses DRAM bytes measured by `ncu`, so it reflects real traffic (K/V tiles re-read from L2 or DRAM by every query block), not the ideal `Q+K+V+O` minimum. Naive sits on the memory slope at 14 FLOP/byte, below the FP32 ridge (36). Every fused kernel is far right of the Tensor Core ridge (132 FLOP/byte), so from v1 on, the question is never DRAM bandwidth but how close the kernel gets to the compute roof. v1 is pinned under the FP32 roof (8.5 TFLOPS). v2 and v3 break through it but sit about 3x under the Tensor Core roof, latency bound at 8% occupancy. v4 reaches 85%. v4's intensity is higher than v3's because its default tile (Br = 128 rows at D=64) re-reads each K/V tile half as often.
 
 ## Where the remaining gap is, and why
 
 v4's geomean over 40 configs is 100% of cuDNN, so there is no overall gap to report, but there is a pattern:
 
-- **D=64: 98% to 120% of cuDNN.** v4 wins most clearly at small N and causal shapes (for example N=512 causal). A plausible reason, not separately measured: at small N there are few query blocks per head, and v4's 2 blocks per SM (cuDNN: one 8-warp block at 229 registers) keeps more of the 24 SMs busy.
-- **D=128: 89% to 105% of cuDNN.** With 4 warps x Bc=32 the kernel runs 2 blocks per SM, but each 16-row warp re-reads a K/V tile for only 32 keys between barriers. Larger tiles would reuse better, but the sweep shows they lose to register and shared-memory pressure (1 block per SM). Closing this needs techniques v4 does not have: splitting D across warps or keeping Q in shared memory to free 32 registers, a 3-stage cp.async pipeline, and software pipelining of the ldmatrix loads of the next K tile under the current MMAs (register double buffering).
+- **D=64: 97% to 119% of cuDNN (faster on 13 of 20).** v4 wins most clearly at small N and causal shapes (for example N=512 causal). A plausible reason, not separately measured: at small N there are few query blocks per head, and v4's 2 blocks per SM (cuDNN: one 8-warp block at 229 registers) keeps more of the 24 SMs busy.
+- **D=128: 82% to 107% of cuDNN (faster on 2 of 20), weakest at N=8192.** With 4 warps x Bc=32 the kernel runs 2 blocks per SM, but each 16-row warp re-reads a K/V tile for only 32 keys between barriers. Larger tiles would reuse better, but the sweep shows they lose to register and shared-memory pressure (1 block per SM). Closing this needs techniques v4 does not have: splitting D across warps or keeping Q in shared memory to free 32 registers, a 3-stage cp.async pipeline, and software pipelining of the ldmatrix loads of the next K tile under the current MMAs (register double buffering).
 - **No FlashAttention-2 comparison.** The Windows wheel does not exist and a source build is out of scope (`docs/env.md` item 12). cuDNN's fused kernel (`cudnn_generated_fort_native_sdpa_sm80_flash_fprop_wmma_f16`) is the FlashAttention-2-class reference instead.
 - **Forward only, fp16/bf16 only, D in {64, 128}.** No backward pass, no dropout, no variable-length batching, no paged KV cache.
 
@@ -137,21 +139,21 @@ v4's geomean over 40 configs is 100% of cuDNN, so there is no overall gap to rep
 
 One spill, found by the clean rebuild that regenerated `ptxas.json`: the v2 conflict-free variant, fp16, D=64 (`attn_v2_kernel<__half, 64, 64, true, 1>`) runs at 64 registers with an 8-byte stack frame (8 bytes spilled and reloaded per thread). The bf16 build of the same variant and every other kernel have no spills. It's the same ptxas heuristic as v1's first build (no explicit minimum blocks per SM in `__launch_bounds__`). The fix is known (`__launch_bounds__(kThreads, 1)`), but the ablation rows were measured with this build, and v2 is not the shipped kernel, so it is recorded rather than re-measured. 8 bytes of local memory per thread normally stays in L1.
 
-v4 defaults (fp16): 126 registers at D=64, 167 at D=128, no spills. Shared memory per block: 48 KB at both defaults.
+v4 defaults (fp16): 128 registers at D=64, 167 at D=128, no spills (126 at D=64 before the Phase 5 GQA and KV-cache change). Shared memory per block: 48 KB at both defaults.
 
 ## Interview questions
 
 **1. Why did WMMA stall at 37% of peak, and what did mma.sync change?**
-WMMA's accumulator layout is unspecified, so per-row softmax and output rescaling had to go through shared memory every tile: store S, softmax, write P, load P, load O, MMA, store O. That made the kernel latency bound, and its shared-memory footprint (79 KB) allowed one 4-warp block per SM (8% occupancy). mma.sync's layout is documented, so S, P and O stay in registers, row reductions are 2 quad shuffles, and shared memory holds only Q and K/V, 48 KB with 8-warp blocks and 2 blocks per SM. Tensor pipe utilization went from 18% to 44%, the same as cuDNN.
+WMMA's accumulator layout is unspecified, so per-row softmax and output rescaling had to go through shared memory every tile: store S, softmax, write P, load P, load O, MMA, store O. That made the kernel latency bound, and its shared-memory footprint (79 KB) allowed one 4-warp block per SM (8% occupancy). mma.sync's layout is documented, so S, P and O stay in registers, row reductions are 2 quad shuffles, and shared memory holds only Q and K/V, 48 KB with 8-warp blocks and 2 blocks per SM. Tensor pipe utilization went from 18% to 43%, about the same as cuDNN (44%).
 
 **2. How do you reuse the S accumulator as the A operand of P V without shared memory?**
 In m16n8k16, a C fragment holds rows g and g+8, columns 2t and 2t+1 of a 16x8 tile. An A fragment holds rows g and g+8, columns 2t, 2t+1, 2t+8 and 2t+9 of a 16x16 tile. So the C fragments of two adjacent 8-key score tiles are exactly the A fragment for those 16 keys. After the softmax the kernel packs pairs of floats into fp16x2 registers in that order and feeds them to the next MMA.
 
 **3. Padding vs XOR swizzle: when do you use each?**
-WMMA load/store take a pointer and a leading dimension, so their buffers must be plainly strided, and padding (8 halves per row) is the only option. `ldmatrix` takes one row address per lane, so the address can be swizzled: chunk c of row r goes to chunk `c ^ (r % 8)`. The 8 rows read in one phase then hit 8 different 16-byte chunks, which is all 32 banks, with no wasted shared memory and every chunk still 16-byte aligned for cp.async. Measured: v3 (padded) had 4.4M load conflicts, v4 (swizzled) 19k.
+WMMA load/store take a pointer and a leading dimension, so their buffers must be plainly strided, and padding (8 halves per row) is the only option. `ldmatrix` takes one row address per lane, so the address can be swizzled: chunk c of row r goes to chunk `c ^ (r % 8)`. The 8 rows read in one phase then hit 8 different 16-byte chunks, which is all 32 banks, with no wasted shared memory and every chunk still 16-byte aligned for cp.async. Measured: v3 (padded) had 4.4M load conflicts, v4 (swizzled) 14k.
 
 **4. Explain the cp.async commit/wait semantics in your pipeline.**
 Each iteration issues the copies for tile kt+1, commits them as a group, then waits with `wait_group 1`: at most one group (the one just issued) may still be in flight, so tile kt is complete while kt+1 keeps loading under the math. `wait_group` covers only the calling thread's copies, so a `__syncthreads()` follows before anyone reads the tile. A second barrier at the end of the iteration keeps a fast warp from prefetching kt+2 into the buffer a slow warp is still reading. The last iteration waits with `wait_group 0`.
 
 **5. Why did the best D=128 config use fewer warps and smaller tiles than D=64?**
-At D=128 each thread holds 64 FP32 output accumulators and 32 registers of Q fragments. Bigger tiles pushed the kernel to 166 to 184 registers and 64 to 96 KB of shared memory, one block per SM, and the exposed latency cost more than the reuse gained. 4 warps x Bc=32 keeps 2 blocks per SM at 167 registers. That's also where v4 trails cuDNN (89% to 105%), and the fixes would be freeing registers (Q in shared memory, splitting D across warps) and deeper pipelining.
+At D=128 each thread holds 64 FP32 output accumulators and 32 registers of Q fragments. Bigger tiles pushed the kernel to 166 to 184 registers and 64 to 96 KB of shared memory, one block per SM, and the exposed latency cost more than the reuse gained. 4 warps x Bc=32 keeps 2 blocks per SM at 167 registers. That's also where v4 trails cuDNN (82% to 107%), and the fixes would be freeing registers (Q in shared memory, splitting D across warps) and deeper pipelining.
