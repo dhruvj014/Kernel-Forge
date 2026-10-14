@@ -23,7 +23,11 @@ HEAD_DIMS = [64, 128]
 SEQ_LENS = [1, 7, 16, 31, 63, 64, 65, 127, 128, 129, 257, 1000]
 B, H = 2, 3
 
-IMPLS = {"attn_naive": ops.attn_naive, "attn_v1": ops.flash_attn_v1}
+IMPLS = {"attn_naive": ops.attn_naive, "attn_v1": ops.flash_attn_v1, "attn_v2": ops.flash_attn_v2,
+         "attn_v3": ops.flash_attn_v3,
+         "attn_v4": ops.flash_attn_v4}
+# Tensor Core kernels take fp16/bf16 only. Their fp32 cases are skipped, not failed.
+TC_ONLY = {"attn_v2", "attn_v3", "attn_v4"}
 
 
 def reference_attention(q, k, v, causal: bool, scale: float) -> torch.Tensor:
@@ -47,6 +51,8 @@ def make_qkv(n, d, dtype, seed=0, scale_q=1.0, scale_k=1.0):
 
 
 def check(error_log, impl_name, case, q, k, v, causal, atol):
+    if impl_name in TC_ONLY and q.dtype == torch.float32:
+        pytest.skip(f"{impl_name} supports fp16/bf16 only")
     scale = 1.0 / math.sqrt(q.shape[-1])
     out = IMPLS[impl_name](q, k, v, causal=causal)
     ref = reference_attention(q, k, v, causal, scale)
@@ -139,6 +145,23 @@ def test_v1_every_tile_config(error_log, config, causal, d, n):
                   causal=causal, max_abs_err=max_abs, max_rel_err=max_abs / ref.abs().max().item(),
                   atol=ATOL[torch.float16], passed=max_abs <= ATOL[torch.float16])
     assert max_abs <= ATOL[torch.float16], f"config {ops.ATTN_V1_CONFIGS[config]}: {max_abs:.3e}"
+
+
+@pytest.mark.parametrize("config", range(len(ops.ATTN_V4_CONFIGS)))
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16], ids=["float16", "bfloat16"])
+@pytest.mark.parametrize("causal", [False, True], ids=["full", "causal"])
+@pytest.mark.parametrize("d", HEAD_DIMS)
+@pytest.mark.parametrize("n", [1, 31, 33, 64, 127, 129, 300])
+def test_v4_every_config(error_log, config, dtype, causal, d, n):
+    """Every (warps, Bc) config of the mma.sync kernel on lengths around tile boundaries."""
+    q, k, v = make_qkv(n, d, dtype, seed=n * 11 + d + config)
+    out = ops.flash_attn_v4(q, k, v, causal=causal, config=config)
+    ref = reference_attention(q, k, v, causal, 1.0 / math.sqrt(d))
+    max_abs = (out.float() - ref).abs().max().item()
+    error_log.add("attn_v4_configs", case=f"config{config}", dtype=str(dtype).replace("torch.", ""),
+                  shape=list(q.shape), causal=causal, max_abs_err=max_abs,
+                  max_rel_err=max_abs / ref.abs().max().item(), atol=ATOL[dtype], passed=max_abs <= ATOL[dtype])
+    assert max_abs <= ATOL[dtype], f"config {ops.ATTN_V4_CONFIGS[config]}: {max_abs:.3e}"
 
 
 def test_v1_rejects_unsupported_head_dim():

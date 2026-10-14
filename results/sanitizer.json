@@ -1,34 +1,34 @@
 {
     "tool_version":  "Version 2025.3.0.0 (build 36260728) (public-release)",
     "binary":  "build/cmake/kf_sanitize_attn.exe (csrc/micro/sanitize_attn.cu)",
-    "timestamp":  "2026-10-13T19:57:15",
+    "timestamp":  "2026-10-13T22:42:51",
     "tools":  {
                   "memcheck":  {
                                    "exit_code":  0,
                                    "clean":  true,
                                    "summary":  "ERROR SUMMARY: 0 errors",
-                                   "workload":  "kf_sanitize_attn: 40 kernel runs, worst abs err 4.879e-04 -\u003e OK",
-                                   "seconds":  2.6
+                                   "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
+                                   "seconds":  2.8
                                },
                   "racecheck":  {
                                     "exit_code":  0,
                                     "clean":  true,
                                     "summary":  "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)",
-                                    "workload":  "kf_sanitize_attn: 40 kernel runs, worst abs err 4.879e-04 -\u003e OK",
-                                    "seconds":  78.2
+                                    "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
+                                    "seconds":  58.5
                                 },
                   "synccheck":  {
                                     "exit_code":  0,
                                     "clean":  true,
                                     "summary":  "ERROR SUMMARY: 0 errors",
-                                    "workload":  "kf_sanitize_attn: 40 kernel runs, worst abs err 4.879e-04 -\u003e OK",
+                                    "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
                                     "seconds":  2.5
                                 },
                   "initcheck":  {
                                     "exit_code":  0,
                                     "clean":  true,
                                     "summary":  "ERROR SUMMARY: 0 errors",
-                                    "workload":  "kf_sanitize_attn: 40 kernel runs, worst abs err 4.879e-04 -\u003e OK",
+                                    "workload":  "kf_sanitize_attn: 96 kernel runs, worst abs err 6.235e-04 -\u003e OK",
                                     "seconds":  2.5
                                 }
               }

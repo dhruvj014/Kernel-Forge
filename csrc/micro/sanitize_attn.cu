@@ -1,5 +1,5 @@
 // Standalone workload for compute-sanitizer (memcheck, racecheck, synccheck)
-// on the fused attention kernels, without PyTorch.
+// on the fused attention kernels (v1, v2, v3, v4), without PyTorch.
 //
 // Why a separate binary: under racecheck, a Python + torch process spent over
 // 20 minutes of CPU time instrumenting torch's CUDA modules before reaching
@@ -15,6 +15,8 @@
 #include <vector>
 
 #include "attention/attn_v1_kernel.cuh"
+#include "attention/attn_v2_kernel.cuh"
+#include "attention/attn_v4_kernel.cuh"
 #include "common/cuda_utils.cuh"
 
 namespace {
@@ -59,7 +61,7 @@ void reference(const std::vector<float>& q, const std::vector<float>& k,
 
 int main() {
   constexpr int BH = 2;
-  constexpr int kConfigs = 5;
+  constexpr int kConfigs = 12;  // 5 v1 configs + 3 v2/v3 variants + 4 v4 configs
   float worst = 0.f;
   int runs = 0;
   for (int D : {64, 128}) {
@@ -81,14 +83,24 @@ int main() {
       const float scale_log2 = kf::attn_v1::kLog2e / std::sqrt(static_cast<float>(D));
       for (bool causal : {false, true}) {
         reference(hq, hk, hv, ref, BH, N, D, causal);
+        // Runs 0-4: v1 tile configs. 5-7: v2 variants (base, conflict-free, v3
+        // cp.async). 8-11: v4 configs (mma.sync).
         for (int cfg = 0; cfg < kConfigs; ++cfg) {
           CUDA_CHECK(cudaMemset(dout.get(), 0, dout.bytes()));
-          if (D == 64)
-            kf::attn_v1::dispatch_config<__half, 64>(cfg, dq.get(), dk.get(), dv.get(), dout.get(),
-                                                     BH, N, scale_log2, causal, nullptr);
-          else
-            kf::attn_v1::dispatch_config<__half, 128>(cfg, dq.get(), dk.get(), dv.get(), dout.get(),
-                                                      BH, N, scale_log2, causal, nullptr);
+          if (cfg < 5) {
+            if (D == 64)
+              kf::attn_v1::dispatch_config<__half, 64>(cfg, dq.get(), dk.get(), dv.get(), dout.get(),
+                                                       BH, N, scale_log2, causal, nullptr);
+            else
+              kf::attn_v1::dispatch_config<__half, 128>(cfg, dq.get(), dk.get(), dv.get(), dout.get(),
+                                                        BH, N, scale_log2, causal, nullptr);
+          } else if (cfg < 8) {
+            kf::attn_v2::dispatch<__half>(cfg - 5, D, dq.get(), dk.get(), dv.get(), dout.get(), BH, N,
+                                          scale_log2, causal, nullptr);
+          } else {
+            kf::attn_v4::dispatch<__half>(cfg - 8, D, dq.get(), dk.get(), dv.get(), dout.get(), BH, N,
+                                          scale_log2, causal, nullptr);
+          }
           CUDA_CHECK(cudaDeviceSynchronize());
           CUDA_CHECK(cudaMemcpy(o16.data(), dout.get(), dout.bytes(), cudaMemcpyDeviceToHost));
           float err = 0.f;
