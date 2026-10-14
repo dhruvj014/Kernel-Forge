@@ -23,7 +23,7 @@ HEAD_DIMS = [64, 128]
 SEQ_LENS = [1, 7, 16, 31, 63, 64, 65, 127, 128, 129, 257, 1000]
 B, H = 2, 3
 
-IMPLS = {"attn_naive": ops.attn_naive}
+IMPLS = {"attn_naive": ops.attn_naive, "attn_v1": ops.flash_attn_v1}
 
 
 def reference_attention(q, k, v, causal: bool, scale: float) -> torch.Tensor:
@@ -55,6 +55,13 @@ def check(error_log, impl_name, case, q, k, v, causal, atol):
     diff = (out.float() - ref).abs()
     max_abs = diff.max().item()
     max_rel = max_abs / max(ref.abs().max().item(), 1e-12)
+    # Softmax turns an absolute score error e into a relative error ~e in P.
+    # In FP32, a score of magnitude |s| carries rounding error ~|s| * 2^-24
+    # (and the exp vs exp2 formulations round differently), so the output
+    # error budget grows with max|s| * max|v|. Negligible for unit-scale
+    # scores, it dominates the fp32 bound only for the |s| ~ 1000 case.
+    s_max = ((q.float() @ k.float().transpose(-1, -2)).abs().max().item()) * scale
+    atol = atol + 8 * 2.0**-24 * s_max * v.float().abs().max().item()
     passed = max_abs <= atol
     error_log.add(
         impl_name,
@@ -115,6 +122,35 @@ def test_custom_scale(error_log, impl):
     out = IMPLS[impl](q, k, v, causal=False, scale=0.05)
     ref = reference_attention(q, k, v, False, 0.05)
     assert (out.float() - ref).abs().max().item() <= ATOL[torch.float16]
+
+
+@pytest.mark.parametrize("config", range(len(ops.ATTN_V1_CONFIGS)))
+@pytest.mark.parametrize("causal", [False, True], ids=["full", "causal"])
+@pytest.mark.parametrize("d", HEAD_DIMS)
+@pytest.mark.parametrize("n", [1, 31, 33, 64, 127, 129, 300])
+def test_v1_every_tile_config(error_log, config, causal, d, n):
+    """Every (Br, Bc) config on lengths below, at and just past tile boundaries."""
+    q, k, v = make_qkv(n, d, torch.float16, seed=n * 7 + d + config)
+    scale = 1.0 / math.sqrt(d)
+    out = ops.flash_attn_v1(q, k, v, causal=causal, config=config)
+    ref = reference_attention(q, k, v, causal, scale)
+    max_abs = (out.float() - ref).abs().max().item()
+    error_log.add("attn_v1_configs", case=f"config{config}", dtype="float16", shape=list(q.shape),
+                  causal=causal, max_abs_err=max_abs, max_rel_err=max_abs / ref.abs().max().item(),
+                  atol=ATOL[torch.float16], passed=max_abs <= ATOL[torch.float16])
+    assert max_abs <= ATOL[torch.float16], f"config {ops.ATTN_V1_CONFIGS[config]}: {max_abs:.3e}"
+
+
+def test_v1_rejects_unsupported_head_dim():
+    q = torch.randn(1, 2, 8, 96, device="cuda", dtype=torch.float16)
+    with pytest.raises(ValueError, match="head dim"):
+        ops.flash_attn_v1(q, q, q)
+
+
+def test_v1_rejects_bad_config():
+    q = torch.randn(1, 2, 8, 64, device="cuda", dtype=torch.float16)
+    with pytest.raises(ValueError, match="config"):
+        ops.flash_attn_v1(q, q, q, config=99)
 
 
 class TestValidation:

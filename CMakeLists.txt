@@ -32,3 +32,4 @@ endfunction()
 
 kf_micro(kf_hello csrc/micro/hello.cu)
 kf_micro(kf_bandwidth csrc/micro/bandwidth.cu)
+kf_micro(kf_sanitize_attn csrc/micro/sanitize_attn.cu)
