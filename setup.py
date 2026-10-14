@@ -27,6 +27,8 @@ sources = [
     "csrc/bindings.cpp",
     "csrc/attention/attn_naive.cu",
     "csrc/attention/attn_v1_fp32.cu",
+    "csrc/attention/attn_v2.cu",
+    "csrc/attention/attn_v4.cu",
 ]
 
 nvcc_flags = [

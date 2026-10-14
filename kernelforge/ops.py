@@ -98,3 +98,71 @@ def flash_attn_v1(
     if not -1 <= config < len(ATTN_V1_CONFIGS):
         raise ValueError(f"config must be -1 or in [0, {len(ATTN_V1_CONFIGS)}), got {config}")
     return _ext().attn_v1(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]), int(config))
+
+
+TC_ATTN_DTYPES = (torch.float16, torch.bfloat16)
+
+
+def _check_tc(name: str, q: torch.Tensor) -> None:
+    if q.dtype not in TC_ATTN_DTYPES:
+        raise TypeError(f"{name} runs on Tensor Cores and supports {TC_ATTN_DTYPES}, got {q.dtype}")
+    if q.shape[-1] not in ATTN_V1_HEAD_DIMS:
+        raise ValueError(f"{name} supports head dim {ATTN_V1_HEAD_DIMS}, got {q.shape[-1]}")
+
+
+def flash_attn_v2(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    causal: bool = False,
+    scale: float | None = None,
+    conflict_free: bool = True,
+) -> torch.Tensor:
+    """Fused attention v2: both matmuls on Tensor Cores via WMMA, online softmax in FP32.
+
+    q, k, v: contiguous [B, H, N, D] CUDA tensors, fp16 or bf16, D in {64, 128}.
+    conflict_free=False selects the first version (bank-conflicting softmax layout), kept for the ablation.
+    """
+    _check_qkv(q, k, v)
+    _check_tc("flash_attn_v2", q)
+    return _ext().attn_v2(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]), int(bool(conflict_free)))
+
+
+def flash_attn_v3(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    causal: bool = False,
+    scale: float | None = None,
+) -> torch.Tensor:
+    """Fused attention v3: v2 (WMMA, conflict-free layout) plus cp.async double-buffered K/V tiles.
+
+    q, k, v: contiguous [B, H, N, D] CUDA tensors, fp16 or bf16, D in {64, 128}.
+    """
+    _check_qkv(q, k, v)
+    _check_tc("flash_attn_v3", q)
+    return _ext().attn_v2(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]), 2)
+
+
+# (warps per block, Bc) per config index, mirrors dispatch_d in csrc/attention/attn_v4_kernel.cuh.
+ATTN_V4_CONFIGS = ((4, 32), (4, 64), (8, 32), (8, 64))
+
+
+def flash_attn_v4(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    causal: bool = False,
+    scale: float | None = None,
+    config: int = -1,
+) -> torch.Tensor:
+    """Fused attention v4: mma.sync Tensor Cores, softmax and O accumulators in registers.
+
+    q, k, v: contiguous [B, H, N, D] CUDA tensors, fp16 or bf16, D in {64, 128}.
+    config: index into ATTN_V4_CONFIGS, -1 for the tuned default.
+    """
+    _check_qkv(q, k, v)
+    _check_tc("flash_attn_v4", q)
+    if not -1 <= config < len(ATTN_V4_CONFIGS):
+        raise ValueError(f"config must be -1 or in [0, {len(ATTN_V4_CONFIGS)}), got {config}")
+    return _ext().attn_v4(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]), int(config))
