@@ -1,0 +1,40 @@
+# GitHub-hosted runners have no GPU, so CI cannot run the tests or benchmarks
+# (they need an sm_80+ card, see docs/env.md). It checks what can be checked
+# without one: Python lint, C++/CUDA formatting, and that every kernel compiles
+# for sm_89 with nvcc. The standalone CMake targets (kf_sanitize_attn,
+# kf_sanitize_gemm) include all attention and INT4 kernels without torch.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned linters
+        run: pip install "$(grep '^ruff==' requirements.txt)" "$(grep '^clang-format==' requirements.txt)"
+      - name: ruff
+        run: ruff check .
+      - name: clang-format
+        run: find csrc \( -name '*.cu' -o -name '*.cuh' -o -name '*.cpp' -o -name '*.h' \) -print0 | xargs -0 clang-format --dry-run --Werror
+
+  build-kernels:
+    runs-on: ubuntu-24.04
+    container: nvidia/cuda:12.4.1-devel-ubuntu22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          apt-get update && apt-get install -y --no-install-recommends python3-pip
+          pip3 install "cmake>=3.24" ninja
+      - name: Configure (sm_89)
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+      - name: Build all CUDA targets
+        run: cmake --build build
