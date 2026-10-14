@@ -166,3 +166,49 @@ def flash_attn_v4(
     if not -1 <= config < len(ATTN_V4_CONFIGS):
         raise ValueError(f"config must be -1 or in [0, {len(ATTN_V4_CONFIGS)}), got {config}")
     return _ext().attn_v4(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]), int(config))
+
+
+def _check_int4(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, group_size: int) -> None:
+    if not isinstance(x, torch.Tensor) or not x.is_cuda or x.dtype != torch.float16 or x.dim() != 2:
+        raise TypeError("x must be a 2-D fp16 CUDA tensor [M, K]")
+    if not x.is_contiguous():
+        raise ValueError("x must be contiguous")
+    if packed.dtype != torch.int32 or scales.dtype != torch.float16:
+        raise TypeError("packed must be int32 and scales fp16 (see kernelforge.quantize)")
+    k = x.shape[1]
+    if k % group_size != 0:
+        raise ValueError(f"K={k} is not a multiple of group_size={group_size}")
+    if packed.shape[1] * 8 != k:
+        raise ValueError(f"packed has K/8={packed.shape[1]} columns but x has K={k}")
+
+
+def int4_gemv(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, group_size: int = 128) -> torch.Tensor:
+    """Fused INT4 dequant GEMV for M in [1, 8]: x [M, K] fp16 @ W_hat^T -> [M, N] fp16."""
+    _check_int4(x, packed, scales, group_size)
+    if not 1 <= x.shape[0] <= 8:
+        raise ValueError(f"int4_gemv handles M in [1, 8], got M={x.shape[0]}")
+    return _ext().int4_gemv(x, packed, scales, int(group_size))
+
+
+GEMV_MAX_M = 7  # measured crossover, results/gemm_dispatch.json (bench/sweep_int4_dispatch.py)
+
+
+def int4_gemm(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, group_size: int = 128) -> torch.Tensor:
+    """Fused INT4 dequant GEMM on Tensor Cores (mma.sync), any M, N a multiple of 64."""
+    _check_int4(x, packed, scales, group_size)
+    if packed.shape[0] % 64 != 0:
+        raise ValueError(f"int4_gemm needs N to be a multiple of 64, got N={packed.shape[0]}")
+    return _ext().int4_gemm(x, packed, scales, int(group_size))
+
+
+def int4_matmul(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, group_size: int = 128) -> torch.Tensor:
+    """y = x @ W_hat^T for INT4 weights from kernelforge.quantize, choosing the kernel by M.
+
+    M <= 7 (decode): the GEMV kernel, a pure weight stream with FP32 CUDA-core math.
+    M >= 8: the Tensor Core GEMM. The GEMV's FP32 math grows linearly with M while the GEMM pads M up
+    to a 16-row tile almost for free, so from M=8 the GEMM is cheaper in total over the layer shapes
+    of both models (results/gemm_dispatch.json).
+    """
+    if x.shape[0] <= GEMV_MAX_M:
+        return int4_gemv(x, packed, scales, group_size)
+    return int4_gemm(x, packed, scales, group_size)

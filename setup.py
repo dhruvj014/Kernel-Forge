@@ -29,6 +29,8 @@ sources = [
     "csrc/attention/attn_v1_fp32.cu",
     "csrc/attention/attn_v2.cu",
     "csrc/attention/attn_v4.cu",
+    "csrc/gemm/dequant_gemv.cu",
+    "csrc/gemm/dequant_gemm_tc.cu",
 ]
 
 nvcc_flags = [
