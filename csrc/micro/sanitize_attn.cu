@@ -30,9 +30,8 @@ struct Lcg {
   }
 };
 
-void reference(const std::vector<float>& q, const std::vector<float>& k,
-               const std::vector<float>& v, std::vector<float>& o, int BH,
-               int N, int D, bool causal) {
+void reference(const std::vector<float>& q, const std::vector<float>& k, const std::vector<float>& v,
+               std::vector<float>& o, int BH, int N, int D, bool causal) {
   const double scale = 1.0 / std::sqrt(static_cast<double>(D));
   std::vector<double> s(N);
   for (int bh = 0; bh < BH; ++bh) {
@@ -72,9 +71,12 @@ int main() {
       Lcg rng{static_cast<uint32_t>(N * 131 + D)};
       // Round inputs to fp16 first so the reference sees exactly what the kernel sees.
       for (size_t i = 0; i < n; ++i) {
-        q16[i] = __float2half(rng.next()); hq[i] = __half2float(q16[i]);
-        k16[i] = __float2half(rng.next()); hk[i] = __half2float(k16[i]);
-        v16[i] = __float2half(rng.next()); hv[i] = __half2float(v16[i]);
+        q16[i] = __float2half(rng.next());
+        hq[i] = __half2float(q16[i]);
+        k16[i] = __float2half(rng.next());
+        hk[i] = __half2float(k16[i]);
+        v16[i] = __float2half(rng.next());
+        hv[i] = __half2float(v16[i]);
       }
       kf::DeviceBuffer<__half> dq(n), dk(n), dv(n), dout(n);
       CUDA_CHECK(cudaMemcpy(dq.get(), q16.data(), dq.bytes(), cudaMemcpyHostToDevice));
@@ -89,17 +91,17 @@ int main() {
           CUDA_CHECK(cudaMemset(dout.get(), 0, dout.bytes()));
           if (cfg < 5) {
             if (D == 64)
-              kf::attn_v1::dispatch_config<__half, 64>(cfg, dq.get(), dk.get(), dv.get(), dout.get(),
-                                                       BH, N, scale_log2, causal, nullptr);
+              kf::attn_v1::dispatch_config<__half, 64>(cfg, dq.get(), dk.get(), dv.get(), dout.get(), BH, N, scale_log2,
+                                                       causal, nullptr);
             else
-              kf::attn_v1::dispatch_config<__half, 128>(cfg, dq.get(), dk.get(), dv.get(), dout.get(),
-                                                        BH, N, scale_log2, causal, nullptr);
+              kf::attn_v1::dispatch_config<__half, 128>(cfg, dq.get(), dk.get(), dv.get(), dout.get(), BH, N,
+                                                        scale_log2, causal, nullptr);
           } else if (cfg < 8) {
-            kf::attn_v2::dispatch<__half>(cfg - 5, D, dq.get(), dk.get(), dv.get(), dout.get(), BH, N,
-                                          scale_log2, causal, nullptr);
+            kf::attn_v2::dispatch<__half>(cfg - 5, D, dq.get(), dk.get(), dv.get(), dout.get(), BH, N, scale_log2,
+                                          causal, nullptr);
           } else {
-            kf::attn_v4::dispatch<__half>(cfg - 8, D, dq.get(), dk.get(), dv.get(), dout.get(), BH, N,
-                                          scale_log2, causal, nullptr);
+            kf::attn_v4::dispatch<__half>(cfg - 8, D, dq.get(), dk.get(), dv.get(), dout.get(), BH, N, scale_log2,
+                                          causal, nullptr);
           }
           CUDA_CHECK(cudaDeviceSynchronize());
           CUDA_CHECK(cudaMemcpy(o16.data(), dout.get(), dout.bytes(), cudaMemcpyDeviceToHost));
@@ -107,8 +109,7 @@ int main() {
           for (size_t i = 0; i < n; ++i) err = std::max(err, std::fabs(__half2float(o16[i]) - ref[i]));
           worst = std::max(worst, err);
           ++runs;
-          if (err > 2e-3f)
-            std::printf("MISMATCH D=%d N=%d causal=%d config=%d err=%.3e\n", D, N, causal, cfg, err);
+          if (err > 2e-3f) std::printf("MISMATCH D=%d N=%d causal=%d config=%d err=%.3e\n", D, N, causal, cfg, err);
         }
       }
     }

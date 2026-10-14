@@ -52,8 +52,7 @@ struct Mma;
 template <>
 struct Mma<__half> {
   // D = A * B + C, 16x8x16, fp16 inputs, FP32 accumulate.
-  __device__ __forceinline__ static void run(float (&c)[4], const uint32_t (&a)[4], uint32_t b0,
-                                             uint32_t b1) {
+  __device__ __forceinline__ static void run(float (&c)[4], const uint32_t (&a)[4], uint32_t b0, uint32_t b1) {
     asm volatile(
         "mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 {%0, %1, %2, %3}, {%4, %5, %6, %7}, "
         "{%8, %9}, {%0, %1, %2, %3};\n"
@@ -68,8 +67,7 @@ struct Mma<__half> {
 
 template <>
 struct Mma<__nv_bfloat16> {
-  __device__ __forceinline__ static void run(float (&c)[4], const uint32_t (&a)[4], uint32_t b0,
-                                             uint32_t b1) {
+  __device__ __forceinline__ static void run(float (&c)[4], const uint32_t (&a)[4], uint32_t b0, uint32_t b1) {
     asm volatile(
         "mma.sync.aligned.m16n8k16.row.col.f32.bf16.bf16.f32 {%0, %1, %2, %3}, {%4, %5, %6, %7}, "
         "{%8, %9}, {%0, %1, %2, %3};\n"

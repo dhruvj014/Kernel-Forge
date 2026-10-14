@@ -1,0 +1,6 @@
+# C++/CUDA style for csrc/. Checked in CI with `clang-format --dry-run --Werror`
+# (clang-format is pinned in requirements.txt so local and CI versions match).
+BasedOnStyle: Google
+ColumnLimit: 120
+# Include order is meaningful in a few files (torch headers before CUDA ones), so leave it alone.
+SortIncludes: Never

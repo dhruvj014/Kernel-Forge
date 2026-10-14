@@ -13,3 +13,4 @@ ruff==0.17.0
 ninja==1.13.2
 cmake==4.4.4
 setuptools==78.1.0
+clang-format==23.1.3

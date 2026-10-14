@@ -21,9 +21,7 @@ namespace {
 constexpr int kQkTile = 16;  // 16x16 = 256 threads per block for kernel 1
 
 template <typename T>
-__global__ void qk_scores_kernel(const T* __restrict__ q,
-                                 const T* __restrict__ k,
-                                 float* __restrict__ s, int N, int D,
+__global__ void qk_scores_kernel(const T* __restrict__ q, const T* __restrict__ k, float* __restrict__ s, int N, int D,
                                  float scale, bool causal) {
   // threadIdx.x walks key index j so consecutive threads write consecutive
   // score addresses (coalesced stores). The K reads are strided by D across
@@ -51,20 +49,17 @@ __global__ void qk_scores_kernel(const T* __restrict__ q,
 // called twice in a row. `identity` fills the lanes of warp 0 that have no
 // partial (fewer than 32 warps), so it must be neutral for `op`.
 template <typename Op>
-__device__ float block_reduce(float val, float* scratch, Op op,
-                              float identity) {
+__device__ float block_reduce(float val, float* scratch, Op op, float identity) {
   const int lane = threadIdx.x & 31;
   const int warp = threadIdx.x >> 5;
   const int num_warps = (blockDim.x + 31) >> 5;
-  for (int off = 16; off > 0; off >>= 1)
-    val = op(val, __shfl_xor_sync(0xffffffff, val, off));
+  for (int off = 16; off > 0; off >>= 1) val = op(val, __shfl_xor_sync(0xffffffff, val, off));
   __syncthreads();
   if (lane == 0) scratch[warp] = val;
   __syncthreads();
   if (warp == 0) {
     val = lane < num_warps ? scratch[lane] : identity;
-    for (int off = 16; off > 0; off >>= 1)
-      val = op(val, __shfl_xor_sync(0xffffffff, val, off));
+    for (int off = 16; off > 0; off >>= 1) val = op(val, __shfl_xor_sync(0xffffffff, val, off));
     if (lane == 0) scratch[0] = val;
   }
   __syncthreads();
@@ -107,8 +102,8 @@ constexpr int kPvThreadsX = 32;  // walks head dim d (coalesced V and O)
 constexpr int kPvThreadsY = 8;   // walks query rows
 
 template <typename T>
-__global__ void pv_kernel(const float* __restrict__ p, const T* __restrict__ v,
-                          T* __restrict__ o, int N, int D, bool causal) {
+__global__ void pv_kernel(const float* __restrict__ p, const T* __restrict__ v, T* __restrict__ o, int N, int D,
+                          bool causal) {
   const int i = blockIdx.x * blockDim.y + threadIdx.y;
   const int bh = blockIdx.y;
   if (i >= N) return;
@@ -121,25 +116,21 @@ __global__ void pv_kernel(const float* __restrict__ p, const T* __restrict__ v,
 
   for (int d = threadIdx.x; d < D; d += blockDim.x) {
     float acc = 0.f;
-    for (int j = 0; j < j_end; ++j)
-      acc += p_row[j] * kf::to_float(v_bh[static_cast<size_t>(j) * D + d]);
+    for (int j = 0; j < j_end; ++j) acc += p_row[j] * kf::to_float(v_bh[static_cast<size_t>(j) * D + d]);
     o_row[d] = kf::from_float<T>(acc);
   }
 }
 
 }  // namespace
 
-at::Tensor attn_naive(at::Tensor q, at::Tensor k, at::Tensor v, bool causal,
-                      double scale) {
+at::Tensor attn_naive(at::Tensor q, at::Tensor k, at::Tensor v, bool causal, double scale) {
   KF_CHECK_INPUT(q);
   KF_CHECK_INPUT(k);
   KF_CHECK_INPUT(v);
   TORCH_CHECK(q.dim() == 4, "q must be [B, H, N, D], got ", q.sizes());
-  TORCH_CHECK(k.sizes() == q.sizes() && v.sizes() == q.sizes(),
-              "q, k, v must have the same shape, got ", q.sizes(), ", ",
-              k.sizes(), ", ", v.sizes());
-  TORCH_CHECK(k.scalar_type() == q.scalar_type() &&
-                  v.scalar_type() == q.scalar_type(),
+  TORCH_CHECK(k.sizes() == q.sizes() && v.sizes() == q.sizes(), "q, k, v must have the same shape, got ", q.sizes(),
+              ", ", k.sizes(), ", ", v.sizes());
+  TORCH_CHECK(k.scalar_type() == q.scalar_type() && v.scalar_type() == q.scalar_type(),
               "q, k, v must have the same dtype");
   TORCH_CHECK(scale > 0.0, "scale must be positive");
 
@@ -155,8 +146,7 @@ at::Tensor attn_naive(at::Tensor q, at::Tensor k, at::Tensor v, bool causal,
 
   // The O(N^2) intermediate. Allocated through the torch caching allocator so
   // an oversized request raises torch.OutOfMemoryError in Python.
-  auto s = at::empty({static_cast<int64_t>(B) * H, N, N},
-                     q.options().dtype(at::kFloat));
+  auto s = at::empty({static_cast<int64_t>(B) * H, N, N}, q.options().dtype(at::kFloat));
   auto o = at::empty_like(q);
 
   KF_DISPATCH_HALF_BF16_FLOAT(q.scalar_type(), "attn_naive", [&] {
@@ -169,8 +159,7 @@ at::Tensor attn_naive(at::Tensor q, at::Tensor k, at::Tensor v, bool causal,
 
     dim3 qk_block(kQkTile, kQkTile);
     dim3 qk_grid(kf::ceil_div(N, kQkTile), kf::ceil_div(N, kQkTile), B * H);
-    qk_scores_kernel<T><<<qk_grid, qk_block, 0, stream>>>(
-        qp, kp, sp, N, D, static_cast<float>(scale), causal);
+    qk_scores_kernel<T><<<qk_grid, qk_block, 0, stream>>>(qp, kp, sp, N, D, static_cast<float>(scale), causal);
     CUDA_CHECK_LAST();
 
     softmax_rows_kernel<<<B * H * N, 256, 0, stream>>>(sp, N);

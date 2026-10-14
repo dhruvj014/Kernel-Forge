@@ -41,9 +41,7 @@ constexpr float kLog2e = 1.4426950408889634f;
 // are zero-filled (predicated load), which keeps their scores finite; they are
 // masked to -inf later.
 template <typename T, int D, int LD, int ROWS, int NT>
-__device__ __forceinline__ void load_tile(float* __restrict__ dst,
-                                          const T* __restrict__ src, int row0,
-                                          int N) {
+__device__ __forceinline__ void load_tile(float* __restrict__ dst, const T* __restrict__ src, int row0, int N) {
   constexpr int VEC = 16 / sizeof(T);
   static_assert(D % VEC == 0, "D must be a multiple of the vector width");
   constexpr int kChunks = ROWS * D / VEC;
@@ -54,8 +52,7 @@ __device__ __forceinline__ void load_tile(float* __restrict__ dst,
     const int gr = row0 + rr;
     float vals[VEC];
     if (gr < N) {
-      const uint4 raw = *reinterpret_cast<const uint4*>(
-          src + static_cast<size_t>(gr) * D + cc);
+      const uint4 raw = *reinterpret_cast<const uint4*>(src + static_cast<size_t>(gr) * D + cc);
       const T* t = reinterpret_cast<const T*>(&raw);
 #pragma unroll
       for (int u = 0; u < VEC; ++u) vals[u] = kf::to_float(t[u]);
@@ -74,15 +71,13 @@ __device__ __forceinline__ void load_tile(float* __restrict__ dst,
 template <int TPR>
 __device__ __forceinline__ float group_max(float v) {
 #pragma unroll
-  for (int off = TPR / 2; off > 0; off >>= 1)
-    v = fmaxf(v, __shfl_xor_sync(0xffffffff, v, off));
+  for (int off = TPR / 2; off > 0; off >>= 1) v = fmaxf(v, __shfl_xor_sync(0xffffffff, v, off));
   return v;
 }
 template <int TPR>
 __device__ __forceinline__ float group_sum(float v) {
 #pragma unroll
-  for (int off = TPR / 2; off > 0; off >>= 1)
-    v += __shfl_xor_sync(0xffffffff, v, off);
+  for (int off = TPR / 2; off > 0; off >>= 1) v += __shfl_xor_sync(0xffffffff, v, off);
   return v;
 }
 
@@ -93,14 +88,12 @@ __device__ __forceinline__ float group_sum(float v) {
 // configs to 1 or 2 blocks per SM, so a register cap buys no occupancy.
 template <typename T, int D, int Br, int Bc, int NT>
 __global__ void __launch_bounds__(NT, 1)
-    attn_v1_kernel(const T* __restrict__ q, const T* __restrict__ k,
-                   const T* __restrict__ v, T* __restrict__ o, int N,
+    attn_v1_kernel(const T* __restrict__ q, const T* __restrict__ k, const T* __restrict__ v, T* __restrict__ o, int N,
                    float scale_log2, bool causal) {
   constexpr int TPR = NT / Br;   // threads per query row
   constexpr int SPT = Bc / TPR;  // score columns per thread
   constexpr int OPT = D / TPR;   // output columns per thread
-  static_assert(NT % Br == 0 && TPR <= 32 && (TPR & (TPR - 1)) == 0,
-                "TPR must be a power of two <= 32");
+  static_assert(NT % Br == 0 && TPR <= 32 && (TPR & (TPR - 1)) == 0, "TPR must be a power of two <= 32");
   static_assert(Bc % TPR == 0 && D % TPR == 0, "tile must split evenly");
   // +1 float of padding per row. Without it, rows D=64 or 128 floats apart
   // map to the same bank, and the lanes of a warp that read the same column
@@ -109,15 +102,15 @@ __global__ void __launch_bounds__(NT, 1)
   constexpr int LDP = Bc + 1;
 
   extern __shared__ float smem[];
-  float* Qs = smem;              // Br x LD
-  float* KVs = Qs + Br * LD;     // Bc x LD, holds K then V of the same tile
-  float* Ps = KVs + Bc * LD;     // Br x LDP, exp(S - m) for the PV product
+  float* Qs = smem;           // Br x LD
+  float* KVs = Qs + Br * LD;  // Bc x LD, holds K then V of the same tile
+  float* Ps = KVs + Bc * LD;  // Br x LDP, exp(S - m) for the PV product
 
   const int tid = threadIdx.x;
   const int r = tid / TPR;  // query row within the tile
   const int g = tid % TPR;  // this thread's slot within the row group
   const int q0 = blockIdx.x * Br;
-  const int qi = q0 + r;    // global query index (may be >= N on the last tile)
+  const int qi = q0 + r;  // global query index (may be >= N on the last tile)
   const size_t head_off = static_cast<size_t>(blockIdx.y) * N * D;
   const T* qh = q + head_off;
   const T* kh = k + head_off;
@@ -217,27 +210,23 @@ __global__ void __launch_bounds__(NT, 1)
     const float inv_l = 1.f / l;
     T* orow = o + head_off + static_cast<size_t>(qi) * D;
 #pragma unroll
-    for (int j = 0; j < OPT; ++j)
-      orow[g + j * TPR] = kf::from_float<T>(acc[j] * inv_l);
+    for (int j = 0; j < OPT; ++j) orow[g + j * TPR] = kf::from_float<T>(acc[j] * inv_l);
   }
 }
 
 template <int D, int Br, int Bc>
 constexpr size_t smem_bytes() {
-  return sizeof(float) * (static_cast<size_t>(Br + Bc) * (D + 1) +
-                          static_cast<size_t>(Br) * (Bc + 1));
+  return sizeof(float) * (static_cast<size_t>(Br + Bc) * (D + 1) + static_cast<size_t>(Br) * (Bc + 1));
 }
 
 template <typename T, int D, int Br, int Bc>
-void launch(const T* q, const T* k, const T* v, T* o, int BH, int N,
-            float scale_log2, bool causal, cudaStream_t stream) {
+void launch(const T* q, const T* k, const T* v, T* o, int BH, int N, float scale_log2, bool causal,
+            cudaStream_t stream) {
   constexpr int NT = 256;
   constexpr size_t smem = smem_bytes<D, Br, Bc>();
   auto kernel = attn_v1_kernel<T, D, Br, Bc, NT>;
   // Above 48 KB of dynamic shared memory a kernel must opt in explicitly.
-  CUDA_CHECK(cudaFuncSetAttribute(
-      kernel, cudaFuncAttributeMaxDynamicSharedMemorySize,
-      static_cast<int>(smem)));
+  CUDA_CHECK(cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, static_cast<int>(smem)));
   dim3 grid(kf::ceil_div(N, Br), BH);
   kernel<<<grid, NT, smem, stream>>>(q, k, v, o, N, scale_log2, causal);
   CUDA_CHECK_LAST();
@@ -246,16 +235,21 @@ void launch(const T* q, const T* k, const T* v, T* o, int BH, int N,
 // Tile configurations swept in Phase 2 (index = `config` argument).
 // -1 picks the default chosen by that sweep for the head dim.
 template <typename T, int D>
-void dispatch_config(int config, const T* q, const T* k, const T* v, T* o,
-                     int BH, int N, float scale_log2, bool causal,
+void dispatch_config(int config, const T* q, const T* k, const T* v, T* o, int BH, int N, float scale_log2, bool causal,
                      cudaStream_t stream) {
   switch (config) {
-    case 0: return launch<T, D, 32, 32>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    case 1: return launch<T, D, 32, 64>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    case 2: return launch<T, D, 64, 32>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    case 3: return launch<T, D, 64, 64>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    case 4: return launch<T, D, 128, 32>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    default: throw std::invalid_argument("unknown attn_v1 config " + std::to_string(config));
+    case 0:
+      return launch<T, D, 32, 32>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    case 1:
+      return launch<T, D, 32, 64>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    case 2:
+      return launch<T, D, 64, 32>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    case 3:
+      return launch<T, D, 64, 64>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    case 4:
+      return launch<T, D, 128, 32>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    default:
+      throw std::invalid_argument("unknown attn_v1 config " + std::to_string(config));
   }
 }
 

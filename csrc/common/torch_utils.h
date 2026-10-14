@@ -35,15 +35,13 @@ using cuda_t = typename CudaType<T>::type;
 
 // Dispatches over exactly the dtypes the kernels implement (fp16, bf16,
 // fp32). AT_DISPATCH_FLOATING_TYPES would also instantiate double.
-#define KF_DISPATCH_HALF_BF16_FLOAT(TYPE, NAME, ...)        \
-  AT_DISPATCH_SWITCH(TYPE, NAME,                            \
-                     AT_DISPATCH_CASE(at::kHalf, __VA_ARGS__)     \
-                         AT_DISPATCH_CASE(at::kBFloat16, __VA_ARGS__) \
-                             AT_DISPATCH_CASE(at::kFloat, __VA_ARGS__))
+#define KF_DISPATCH_HALF_BF16_FLOAT(TYPE, NAME, ...)                                                       \
+  AT_DISPATCH_SWITCH(TYPE, NAME,                                                                           \
+                     AT_DISPATCH_CASE(at::kHalf, __VA_ARGS__) AT_DISPATCH_CASE(at::kBFloat16, __VA_ARGS__) \
+                         AT_DISPATCH_CASE(at::kFloat, __VA_ARGS__))
 
 #define KF_CHECK_CUDA(x) TORCH_CHECK((x).is_cuda(), #x " must be a CUDA tensor")
-#define KF_CHECK_CONTIG(x) \
-  TORCH_CHECK((x).is_contiguous(), #x " must be contiguous")
+#define KF_CHECK_CONTIG(x) TORCH_CHECK((x).is_contiguous(), #x " must be contiguous")
 #define KF_CHECK_INPUT(x) \
   KF_CHECK_CUDA(x);       \
   KF_CHECK_CONTIG(x)

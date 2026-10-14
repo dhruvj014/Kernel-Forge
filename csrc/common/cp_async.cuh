@@ -24,8 +24,7 @@ namespace kf {
 __device__ __forceinline__ void cp_async16(void* smem_dst, const void* gmem_src, bool pred) {
   const unsigned dst = static_cast<unsigned>(__cvta_generic_to_shared(smem_dst));
   const int src_bytes = pred ? 16 : 0;
-  asm volatile("cp.async.cg.shared.global [%0], [%1], 16, %2;\n" ::"r"(dst), "l"(gmem_src),
-               "r"(src_bytes));
+  asm volatile("cp.async.cg.shared.global [%0], [%1], 16, %2;\n" ::"r"(dst), "l"(gmem_src), "r"(src_bytes));
 }
 
 __device__ __forceinline__ void cp_async_commit() { asm volatile("cp.async.commit_group;\n" ::); }

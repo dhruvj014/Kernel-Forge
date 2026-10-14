@@ -7,16 +7,13 @@ using kf::attn_v1::kLog2e;
 
 int attn_v1_num_configs() { return 5; }
 
-at::Tensor attn_v1(at::Tensor q, at::Tensor k, at::Tensor v, bool causal,
-                   double scale, int64_t config) {
+at::Tensor attn_v1(at::Tensor q, at::Tensor k, at::Tensor v, bool causal, double scale, int64_t config) {
   KF_CHECK_INPUT(q);
   KF_CHECK_INPUT(k);
   KF_CHECK_INPUT(v);
   TORCH_CHECK(q.dim() == 4, "q must be [B, H, N, D], got ", q.sizes());
-  TORCH_CHECK(k.sizes() == q.sizes() && v.sizes() == q.sizes(),
-              "q, k, v must have the same shape");
-  TORCH_CHECK(k.scalar_type() == q.scalar_type() &&
-                  v.scalar_type() == q.scalar_type(),
+  TORCH_CHECK(k.sizes() == q.sizes() && v.sizes() == q.sizes(), "q, k, v must have the same shape");
+  TORCH_CHECK(k.scalar_type() == q.scalar_type() && v.scalar_type() == q.scalar_type(),
               "q, k, v must have the same dtype");
   TORCH_CHECK(scale > 0.0, "scale must be positive");
   const int B = static_cast<int>(q.size(0));

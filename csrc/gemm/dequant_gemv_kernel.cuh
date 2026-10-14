@@ -37,13 +37,12 @@ constexpr int kRows = 2;  // output rows per warp
 // 2 rows x 512 bytes keep about 12 KB of weight loads in flight per SM.
 template <int M>
 __global__ void __launch_bounds__(kWarps * 32, 3)
-    dequant_gemv_kernel(const __half* __restrict__ x, const uint4* __restrict__ wq,
-                        const __half* __restrict__ scales, __half* __restrict__ y, int N, int K,
-                        int group) {
+    dequant_gemv_kernel(const __half* __restrict__ x, const uint4* __restrict__ wq, const __half* __restrict__ scales,
+                        __half* __restrict__ y, int N, int K, int group) {
   const int lane = threadIdx.x % 32;
   const int n0 = (blockIdx.x * kWarps + threadIdx.x / 32) * kRows;
-  if (n0 >= N) return;  // whole warp exits together, no shuffle hazard
-  const int chunks = K / 32;           // 32 weights = one uint4 of packed words
+  if (n0 >= N) return;        // whole warp exits together, no shuffle hazard
+  const int chunks = K / 32;  // 32 weights = one uint4 of packed words
   const int groups = K / group;
   const int chunks_per_group = group / 32;
 
@@ -117,20 +116,28 @@ void launch(const __half* x, const uint4* wq, const __half* s, __half* y, int N,
   CUDA_CHECK_LAST();
 }
 
-
 // M in [1, 8]. wq is the packed weight matrix viewed as uint4 (4 words = 32 weights).
 inline void dispatch(int M, const __half* x, const uint4* wq, const __half* s, __half* y, int N, int K, int group,
                      cudaStream_t stream) {
   switch (M) {
-    case 1: return launch<1>(x, wq, s, y, N, K, group, stream);
-    case 2: return launch<2>(x, wq, s, y, N, K, group, stream);
-    case 3: return launch<3>(x, wq, s, y, N, K, group, stream);
-    case 4: return launch<4>(x, wq, s, y, N, K, group, stream);
-    case 5: return launch<5>(x, wq, s, y, N, K, group, stream);
-    case 6: return launch<6>(x, wq, s, y, N, K, group, stream);
-    case 7: return launch<7>(x, wq, s, y, N, K, group, stream);
-    case 8: return launch<8>(x, wq, s, y, N, K, group, stream);
-    default: throw std::invalid_argument("int4 GEMV handles M in [1, 8]");
+    case 1:
+      return launch<1>(x, wq, s, y, N, K, group, stream);
+    case 2:
+      return launch<2>(x, wq, s, y, N, K, group, stream);
+    case 3:
+      return launch<3>(x, wq, s, y, N, K, group, stream);
+    case 4:
+      return launch<4>(x, wq, s, y, N, K, group, stream);
+    case 5:
+      return launch<5>(x, wq, s, y, N, K, group, stream);
+    case 6:
+      return launch<6>(x, wq, s, y, N, K, group, stream);
+    case 7:
+      return launch<7>(x, wq, s, y, N, K, group, stream);
+    case 8:
+      return launch<8>(x, wq, s, y, N, K, group, stream);
+    default:
+      throw std::invalid_argument("int4 GEMV handles M in [1, 8]");
   }
 }
 

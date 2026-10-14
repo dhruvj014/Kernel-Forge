@@ -2,8 +2,7 @@
 #include "attention/attn_v2_kernel.cuh"
 #include "common/torch_utils.h"
 
-at::Tensor attn_v2(at::Tensor q, at::Tensor k, at::Tensor v, bool causal, double scale,
-                   int64_t variant) {
+at::Tensor attn_v2(at::Tensor q, at::Tensor k, at::Tensor v, bool causal, double scale, int64_t variant) {
   KF_CHECK_INPUT(q);
   KF_CHECK_INPUT(k);
   KF_CHECK_INPUT(v);
@@ -27,21 +26,17 @@ at::Tensor attn_v2(at::Tensor q, at::Tensor k, at::Tensor v, bool causal, double
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
   auto o = at::empty_like(q);
   const float scale_log2 = static_cast<float>(scale) * kf::attn_v2::kLog2e;
-  AT_DISPATCH_SWITCH(q.scalar_type(), "attn_v2",
-                     AT_DISPATCH_CASE(at::kHalf, [&] {
-                       using T = kf::cuda_t<scalar_t>;
-                       kf::attn_v2::dispatch<T>(static_cast<int>(variant), D, reinterpret_cast<const T*>(q.data_ptr()),
-                                                reinterpret_cast<const T*>(k.data_ptr()),
-                                                reinterpret_cast<const T*>(v.data_ptr()),
-                                                reinterpret_cast<T*>(o.data_ptr()), B * H, N, scale_log2,
-                                                causal, stream);
-                     }) AT_DISPATCH_CASE(at::kBFloat16, [&] {
-                       using T = kf::cuda_t<scalar_t>;
-                       kf::attn_v2::dispatch<T>(static_cast<int>(variant), D, reinterpret_cast<const T*>(q.data_ptr()),
-                                                reinterpret_cast<const T*>(k.data_ptr()),
-                                                reinterpret_cast<const T*>(v.data_ptr()),
-                                                reinterpret_cast<T*>(o.data_ptr()), B * H, N, scale_log2,
-                                                causal, stream);
-                     }));
+  AT_DISPATCH_SWITCH(
+      q.scalar_type(), "attn_v2", AT_DISPATCH_CASE(at::kHalf, [&] {
+        using T = kf::cuda_t<scalar_t>;
+        kf::attn_v2::dispatch<T>(static_cast<int>(variant), D, reinterpret_cast<const T*>(q.data_ptr()),
+                                 reinterpret_cast<const T*>(k.data_ptr()), reinterpret_cast<const T*>(v.data_ptr()),
+                                 reinterpret_cast<T*>(o.data_ptr()), B * H, N, scale_log2, causal, stream);
+      }) AT_DISPATCH_CASE(at::kBFloat16, [&] {
+        using T = kf::cuda_t<scalar_t>;
+        kf::attn_v2::dispatch<T>(static_cast<int>(variant), D, reinterpret_cast<const T*>(q.data_ptr()),
+                                 reinterpret_cast<const T*>(k.data_ptr()), reinterpret_cast<const T*>(v.data_ptr()),
+                                 reinterpret_cast<T*>(o.data_ptr()), B * H, N, scale_log2, causal, stream);
+      }));
   return o;
 }

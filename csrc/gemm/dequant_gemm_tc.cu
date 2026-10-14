@@ -18,7 +18,8 @@ at::Tensor int4_gemm(at::Tensor x, at::Tensor packed, at::Tensor scales, int64_t
   auto y = at::empty({M, N}, x.options());
   // Split-K partials go through the torch caching allocator.
   const size_t ws_floats = workspace_floats(M, N, K, sm);
-  at::Tensor ws = ws_floats ? at::empty({static_cast<int64_t>(ws_floats)}, x.options().dtype(at::kFloat)) : at::Tensor();
+  at::Tensor ws =
+      ws_floats ? at::empty({static_cast<int64_t>(ws_floats)}, x.options().dtype(at::kFloat)) : at::Tensor();
   run(reinterpret_cast<const __half*>(x.data_ptr()), reinterpret_cast<const uint32_t*>(packed.data_ptr()),
       reinterpret_cast<const __half*>(scales.data_ptr()), reinterpret_cast<__half*>(y.data_ptr()),
       ws_floats ? ws.data_ptr<float>() : nullptr, M, N, K, static_cast<int>(group), sm,

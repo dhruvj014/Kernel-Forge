@@ -5,9 +5,7 @@
 
 #include "common/cuda_utils.cuh"
 
-__global__ void vector_add(const float* __restrict__ a,
-                           const float* __restrict__ b, float* __restrict__ c,
-                           int n) {
+__global__ void vector_add(const float* __restrict__ a, const float* __restrict__ b, float* __restrict__ c, int n) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i < n) c[i] = a[i] + b[i];
 }
@@ -34,9 +32,7 @@ int main() {
 
   cudaDeviceProp prop{};
   CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
-  std::printf("device: %s (sm_%d%d, %d SMs)\n", prop.name, prop.major,
-              prop.minor, prop.multiProcessorCount);
-  std::printf("vector_add n=%d mismatches=%d -> %s\n", n, bad,
-              bad == 0 ? "OK" : "FAIL");
+  std::printf("device: %s (sm_%d%d, %d SMs)\n", prop.name, prop.major, prop.minor, prop.multiProcessorCount);
+  std::printf("vector_add n=%d mismatches=%d -> %s\n", n, bad, bad == 0 ? "OK" : "FAIL");
   return bad == 0 ? 0 : 1;
 }

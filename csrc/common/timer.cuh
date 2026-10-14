@@ -59,8 +59,7 @@ inline TimingStats summarize(std::vector<float> samples) {
 // Runs `fn` (which must only enqueue GPU work) `warmup` times untimed, then
 // `iters` times with one event pair per iteration.
 template <typename Fn>
-TimingStats time_gpu(Fn&& fn, int warmup = 10, int iters = 50,
-                     cudaStream_t stream = nullptr) {
+TimingStats time_gpu(Fn&& fn, int warmup = 10, int iters = 50, cudaStream_t stream = nullptr) {
   for (int i = 0; i < warmup; ++i) fn();
   CUDA_CHECK(cudaStreamSynchronize(stream));
   GpuTimer timer(stream);

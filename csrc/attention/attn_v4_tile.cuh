@@ -25,8 +25,7 @@ __device__ __forceinline__ int swz(int row, int col) {
 // ROWS x D tile, global -> shared via cp.async, 16 bytes per copy, rows past N
 // zero-filled. The caller commits and waits.
 template <typename T, int D, int ROWS, int NT>
-__device__ __forceinline__ void load_tile_async(T* __restrict__ dst, const T* __restrict__ src,
-                                                int row0, int N) {
+__device__ __forceinline__ void load_tile_async(T* __restrict__ dst, const T* __restrict__ src, int row0, int N) {
   constexpr int kChunksPerRow = D / 8;
   for (int i = threadIdx.x; i < ROWS * kChunksPerRow; i += NT) {
     const int rr = i / kChunksPerRow;

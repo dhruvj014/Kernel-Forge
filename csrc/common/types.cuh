@@ -15,9 +15,7 @@ __device__ __forceinline__ float neg_inf() { return __int_as_float(0xff800000); 
 
 __device__ __forceinline__ float to_float(float x) { return x; }
 __device__ __forceinline__ float to_float(__half x) { return __half2float(x); }
-__device__ __forceinline__ float to_float(__nv_bfloat16 x) {
-  return __bfloat162float(x);
-}
+__device__ __forceinline__ float to_float(__nv_bfloat16 x) { return __bfloat162float(x); }
 
 template <typename T>
 __device__ __forceinline__ T from_float(float x);

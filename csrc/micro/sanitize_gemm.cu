@@ -73,8 +73,8 @@ int main() {
         if (kernel == 0 && M > 8) continue;
         CUDA_CHECK(cudaMemset(dy.get(), 0, dy.bytes()));
         if (kernel == 0)
-          kf::gemv::dispatch(M, dx.get(), reinterpret_cast<const uint4*>(dw.get()), ds.get(), dy.get(), N, K,
-                             group, nullptr);
+          kf::gemv::dispatch(M, dx.get(), reinterpret_cast<const uint4*>(dw.get()), ds.get(), dy.get(), N, K, group,
+                             nullptr);
         else
           kf::gemm_tc::run(dx.get(), dw.get(), ds.get(), dy.get(), ws.get(), M, N, K, group, sm, nullptr);
         CUDA_CHECK(cudaDeviceSynchronize());

@@ -76,8 +76,7 @@ struct Smem {
 // ROWS x D tile of 16-bit elements, global -> shared, 16 bytes per thread per
 // step, rows past N zero-filled.
 template <typename T, int D, int ROWS>
-__device__ __forceinline__ void load_tile(T* __restrict__ dst, const T* __restrict__ src, int row0,
-                                          int N) {
+__device__ __forceinline__ void load_tile(T* __restrict__ dst, const T* __restrict__ src, int row0, int N) {
   constexpr int VEC = 8;
   constexpr int kChunks = ROWS * D / VEC;
   constexpr int ld = D + kPad;
@@ -93,8 +92,7 @@ __device__ __forceinline__ void load_tile(T* __restrict__ dst, const T* __restri
 // Same tile copy issued as cp.async (no registers, no waiting). Rows past N
 // use the zero-fill form, with a valid in-bounds address that is never read.
 template <typename T, int D, int ROWS>
-__device__ __forceinline__ void load_tile_async(T* __restrict__ dst, const T* __restrict__ src,
-                                                int row0, int N) {
+__device__ __forceinline__ void load_tile_async(T* __restrict__ dst, const T* __restrict__ src, int row0, int N) {
   constexpr int VEC = 8;
   constexpr int kChunks = ROWS * D / VEC;
   constexpr int ld = D + kPad;
@@ -127,8 +125,8 @@ __device__ __forceinline__ int lane_col(int j, int half, int row) {
 
 template <typename T, int D, int Bc, bool kCF, int kStages>
 __global__ void __launch_bounds__(kThreads)
-    attn_v2_kernel(const T* __restrict__ q, const T* __restrict__ k, const T* __restrict__ v,
-                   T* __restrict__ o, int N, float scale_log2, bool causal) {
+    attn_v2_kernel(const T* __restrict__ q, const T* __restrict__ k, const T* __restrict__ v, T* __restrict__ o, int N,
+                   float scale_log2, bool causal) {
   using L = Smem<D, Bc, kStages>;
   using F = Frag<T>;
   extern __shared__ __align__(128) unsigned char smem_raw[];
@@ -304,19 +302,23 @@ void launch(const T* q, const T* k, const T* v, T* o, int BH, int N, float scale
 //   1: v2 + conflict-free softmax layout
 //   2: v3 = variant 1 + cp.async double-buffered K/V (D=64: 79 KB smem, D=128: 93 KB)
 template <typename T, int D, int Bc>
-void dispatch_d(int variant, const T* q, const T* k, const T* v, T* o, int BH, int N,
-                float scale_log2, bool causal, cudaStream_t stream) {
+void dispatch_d(int variant, const T* q, const T* k, const T* v, T* o, int BH, int N, float scale_log2, bool causal,
+                cudaStream_t stream) {
   switch (variant) {
-    case 0: return launch<T, D, Bc, false, 1>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    case 1: return launch<T, D, Bc, true, 1>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    case 2: return launch<T, D, Bc, true, 2>(q, k, v, o, BH, N, scale_log2, causal, stream);
-    default: throw std::invalid_argument("attn_v2 variant must be 0, 1 or 2");
+    case 0:
+      return launch<T, D, Bc, false, 1>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    case 1:
+      return launch<T, D, Bc, true, 1>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    case 2:
+      return launch<T, D, Bc, true, 2>(q, k, v, o, BH, N, scale_log2, causal, stream);
+    default:
+      throw std::invalid_argument("attn_v2 variant must be 0, 1 or 2");
   }
 }
 
 template <typename T>
-void dispatch(int variant, int D, const T* q, const T* k, const T* v, T* o, int BH, int N,
-              float scale_log2, bool causal, cudaStream_t stream) {
+void dispatch(int variant, int D, const T* q, const T* k, const T* v, T* o, int BH, int N, float scale_log2,
+              bool causal, cudaStream_t stream) {
   if (D == 64) return dispatch_d<T, 64, 64>(variant, q, k, v, o, BH, N, scale_log2, causal, stream);
   if (D == 128) return dispatch_d<T, 128, 32>(variant, q, k, v, o, BH, N, scale_log2, causal, stream);
   throw std::invalid_argument("attn_v2 supports D in {64, 128}, got " + std::to_string(D));

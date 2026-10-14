@@ -14,8 +14,7 @@ namespace {
 // float4 loads: each thread moves 16 bytes per instruction, so a warp issues
 // 512 contiguous bytes, i.e. four full 128-byte cache lines per load. Scalar
 // float loads would need 4x the instructions for the same traffic.
-__global__ void read_kernel(const float4* __restrict__ in, size_t n4,
-                            float* __restrict__ sink) {
+__global__ void read_kernel(const float4* __restrict__ in, size_t n4, float* __restrict__ sink) {
   float acc = 0.f;
   size_t stride = static_cast<size_t>(gridDim.x) * blockDim.x;
   for (size_t i = blockIdx.x * blockDim.x + threadIdx.x; i < n4; i += stride) {
@@ -27,8 +26,7 @@ __global__ void read_kernel(const float4* __restrict__ in, size_t n4,
   if (acc == 1234567.0f) sink[0] = acc;
 }
 
-__global__ void copy_kernel(const float4* __restrict__ in,
-                            float4* __restrict__ out, size_t n4) {
+__global__ void copy_kernel(const float4* __restrict__ in, float4* __restrict__ out, size_t n4) {
   size_t stride = static_cast<size_t>(gridDim.x) * blockDim.x;
   for (size_t i = blockIdx.x * blockDim.x + threadIdx.x; i < n4; i += stride) {
     out[i] = in[i];
@@ -75,8 +73,7 @@ std::string json_result(const char* name, const Result& r, double bytes) {
   std::snprintf(buf, sizeof(buf),
                 "\"%s\": {\"gbps\": %.2f, \"median_ms\": %.4f, \"p10_ms\": "
                 "%.4f, \"p90_ms\": %.4f, \"bytes_moved\": %.0f, \"grid\": %d}",
-                name, r.gbps, r.t.median_ms, r.t.p10_ms, r.t.p90_ms, bytes,
-                r.grid);
+                name, r.gbps, r.t.median_ms, r.t.p10_ms, r.t.p90_ms, bytes, r.grid);
   return buf;
 }
 
@@ -90,8 +87,7 @@ int main() {
 
   constexpr int block = 256;
   int blocks_per_sm = 0;
-  CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
-      &blocks_per_sm, copy_kernel, block, 0));
+  CUDA_CHECK(cudaOccupancyMaxActiveBlocksPerMultiprocessor(&blocks_per_sm, copy_kernel, block, 0));
   int wave = blocks_per_sm * p.multiProcessorCount;
 
   // 1 GiB total footprint: far larger than L2 (tens of MB), so every pass
@@ -132,25 +128,19 @@ int main() {
   double theoretical_gbps = 2.0 * mem_clock_khz * 1e3 * (bus_width / 8.0) / 1e9;
 
   std::printf("{\n");
-  std::printf("  \"device\": {\"name\": \"%s\", \"cc\": \"%d.%d\", ", p.name,
-              p.major, p.minor);
-  std::printf("\"sm_count\": %d, \"total_global_mem_bytes\": %zu, ",
-              p.multiProcessorCount, p.totalGlobalMem);
-  std::printf("\"l2_cache_bytes\": %d, \"persisting_l2_max_bytes\": %d, ",
-              p.l2CacheSize, p.persistingL2CacheMaxSize);
-  std::printf("\"smem_per_block_bytes\": %zu, \"smem_per_block_optin_bytes\": %zu, ",
-              p.sharedMemPerBlock, p.sharedMemPerBlockOptin);
-  std::printf("\"smem_per_sm_bytes\": %zu, \"regs_per_sm\": %d, \"regs_per_block\": %d, ",
-              p.sharedMemPerMultiprocessor, p.regsPerMultiprocessor,
-              p.regsPerBlock);
-  std::printf("\"max_threads_per_sm\": %d, \"max_threads_per_block\": %d, ",
-              p.maxThreadsPerMultiProcessor, p.maxThreadsPerBlock);
-  std::printf("\"max_blocks_per_sm\": %d, \"warp_size\": %d, ",
-              p.maxBlocksPerMultiProcessor, p.warpSize);
-  std::printf("\"sm_clock_max_khz\": %d, \"mem_clock_max_khz\": %d, ",
-              clock_khz, mem_clock_khz);
-  std::printf("\"mem_bus_width_bits\": %d, \"theoretical_dram_gbps_from_clocks\": %.2f},\n",
-              bus_width, theoretical_gbps);
+  std::printf("  \"device\": {\"name\": \"%s\", \"cc\": \"%d.%d\", ", p.name, p.major, p.minor);
+  std::printf("\"sm_count\": %d, \"total_global_mem_bytes\": %zu, ", p.multiProcessorCount, p.totalGlobalMem);
+  std::printf("\"l2_cache_bytes\": %d, \"persisting_l2_max_bytes\": %d, ", p.l2CacheSize, p.persistingL2CacheMaxSize);
+  std::printf("\"smem_per_block_bytes\": %zu, \"smem_per_block_optin_bytes\": %zu, ", p.sharedMemPerBlock,
+              p.sharedMemPerBlockOptin);
+  std::printf("\"smem_per_sm_bytes\": %zu, \"regs_per_sm\": %d, \"regs_per_block\": %d, ", p.sharedMemPerMultiprocessor,
+              p.regsPerMultiprocessor, p.regsPerBlock);
+  std::printf("\"max_threads_per_sm\": %d, \"max_threads_per_block\": %d, ", p.maxThreadsPerMultiProcessor,
+              p.maxThreadsPerBlock);
+  std::printf("\"max_blocks_per_sm\": %d, \"warp_size\": %d, ", p.maxBlocksPerMultiProcessor, p.warpSize);
+  std::printf("\"sm_clock_max_khz\": %d, \"mem_clock_max_khz\": %d, ", clock_khz, mem_clock_khz);
+  std::printf("\"mem_bus_width_bits\": %d, \"theoretical_dram_gbps_from_clocks\": %.2f},\n", bus_width,
+              theoretical_gbps);
   std::printf("  \"dram_bandwidth\": {\n    \"buffer_bytes\": %zu, \"block\": %d, \"wave_blocks\": %d,\n",
               bytes_per_buf, block, wave);
   std::printf("    %s,\n", json_result("read", rd, rd_bytes).c_str());

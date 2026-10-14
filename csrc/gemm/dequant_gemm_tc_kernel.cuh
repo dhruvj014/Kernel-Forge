@@ -55,13 +55,12 @@ struct Layout {
 template <int WM, int WN, int MT, int NT>
 __global__ void __launch_bounds__(kThreads)
     dequant_gemm_tc_kernel(const __half* __restrict__ x, const uint32_t* __restrict__ wq,
-                           const __half* __restrict__ scales, __half* __restrict__ y,
-                           float* __restrict__ partial, int M, int N, int K, int group,
-                           int kt_per_split) {
+                           const __half* __restrict__ scales, __half* __restrict__ y, float* __restrict__ partial,
+                           int M, int N, int K, int group, int kt_per_split) {
   constexpr int BM = Layout<WM, WN, MT, NT>::BM;
-  __shared__ __align__(128) __half As[2][BM * BK];         // x tiles, swizzled
-  __shared__ __align__(128) uint32_t Wp[2][BN * BK / 8];   // packed weight tiles, [n][8 words]
-  __shared__ __align__(128) __half Bs[BN * BK];            // dequantized weight tile, swizzled
+  __shared__ __align__(128) __half As[2][BM * BK];        // x tiles, swizzled
+  __shared__ __align__(128) uint32_t Wp[2][BN * BK / 8];  // packed weight tiles, [n][8 words]
+  __shared__ __align__(128) __half Bs[BN * BK];           // dequantized weight tile, swizzled
 
   const int tid = threadIdx.x, warp = tid / 32, lane = tid % 32;
   const int g = lane >> 2, t = lane & 3;
@@ -162,7 +161,6 @@ __global__ void splitk_reduce(const float* __restrict__ partial, __half* __restr
   }
 }
 
-
 // Rows per block for a given M (see Layout): the smallest tile that covers M.
 inline int block_m(int M) { return M <= 16 ? 16 : (M <= 32 ? 32 : 64); }
 
@@ -185,13 +183,13 @@ inline size_t workspace_floats(int M, int N, int K, int sm_count) {
 }
 
 template <int WM, int WN, int MT, int NT>
-void launch(const __half* x, const uint32_t* wq, const __half* scales, __half* y, float* ws, int M, int N,
-            int K, int group, int sm_count, cudaStream_t stream) {
+void launch(const __half* x, const uint32_t* wq, const __half* scales, __half* y, float* ws, int M, int N, int K,
+            int group, int sm_count, cudaStream_t stream) {
   int splits, kt_per_split;
   choose_splits(M, N, K, sm_count, splits, kt_per_split);
   dim3 grid(N / BN, kf::ceil_div(M, Layout<WM, WN, MT, NT>::BM), splits);
-  dequant_gemm_tc_kernel<WM, WN, MT, NT><<<grid, kThreads, 0, stream>>>(
-      x, wq, scales, y, splits > 1 ? ws : nullptr, M, N, K, group, kt_per_split);
+  dequant_gemm_tc_kernel<WM, WN, MT, NT>
+      <<<grid, kThreads, 0, stream>>>(x, wq, scales, y, splits > 1 ? ws : nullptr, M, N, K, group, kt_per_split);
   CUDA_CHECK_LAST();
   if (splits > 1) {
     const size_t mn = size_t(M) * N;
@@ -202,11 +200,14 @@ void launch(const __half* x, const uint32_t* wq, const __half* scales, __half* y
 }
 
 // Requires N % 64 == 0, K % 64 == 0, and ws with workspace_floats(...) floats.
-inline void run(const __half* x, const uint32_t* wq, const __half* scales, __half* y, float* ws, int M, int N,
-                int K, int group, int sm_count, cudaStream_t stream) {
-  if (M <= 16) launch<1, 4, 1, 2>(x, wq, scales, y, ws, M, N, K, group, sm_count, stream);
-  else if (M <= 32) launch<2, 2, 1, 4>(x, wq, scales, y, ws, M, N, K, group, sm_count, stream);
-  else launch<2, 2, 2, 4>(x, wq, scales, y, ws, M, N, K, group, sm_count, stream);
+inline void run(const __half* x, const uint32_t* wq, const __half* scales, __half* y, float* ws, int M, int N, int K,
+                int group, int sm_count, cudaStream_t stream) {
+  if (M <= 16)
+    launch<1, 4, 1, 2>(x, wq, scales, y, ws, M, N, K, group, sm_count, stream);
+  else if (M <= 32)
+    launch<2, 2, 1, 4>(x, wq, scales, y, ws, M, N, K, group, sm_count, stream);
+  else
+    launch<2, 2, 2, 4>(x, wq, scales, y, ws, M, N, K, group, sm_count, stream);
 }
 
 }  // namespace kf::gemm_tc

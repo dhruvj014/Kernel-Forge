@@ -9,13 +9,9 @@
 
 namespace kf {
 
-__host__ __device__ constexpr inline int ceil_div(int a, int b) {
-  return (a + b - 1) / b;
-}
+__host__ __device__ constexpr inline int ceil_div(int a, int b) { return (a + b - 1) / b; }
 
-__host__ __device__ constexpr inline size_t ceil_div(size_t a, size_t b) {
-  return (a + b - 1) / b;
-}
+__host__ __device__ constexpr inline size_t ceil_div(size_t a, size_t b) { return (a + b - 1) / b; }
 
 // Owning, move-only device allocation. Used by the standalone C++ binaries.
 // The torch extension allocates through the PyTorch caching allocator instead.
@@ -34,8 +30,7 @@ class DeviceBuffer {
   DeviceBuffer& operator=(const DeviceBuffer&) = delete;
 
   DeviceBuffer(DeviceBuffer&& other) noexcept
-      : ptr_(std::exchange(other.ptr_, nullptr)),
-        count_(std::exchange(other.count_, 0)) {}
+      : ptr_(std::exchange(other.ptr_, nullptr)), count_(std::exchange(other.count_, 0)) {}
   DeviceBuffer& operator=(DeviceBuffer&& other) noexcept {
     if (this != &other) {
       if (ptr_) cudaFree(ptr_);
