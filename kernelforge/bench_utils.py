@@ -126,13 +126,17 @@ def time_cuda(
     time, so short kernels still give the laptop GPU time to reach boost clocks.
     """
     flusher = L2Flusher() if flush_l2 else None
+    # Synchronize every warmup call so the wall clock measures GPU time. fn()
+    # only enqueues work, so without the sync the loop queued about 1000
+    # launches (until the launch queue filled) before 100 ms of wall time had
+    # passed, and long kernels spent minutes in warmup.
     done, t0 = 0, time.perf_counter()
     while done < warmup or (time.perf_counter() - t0) * 1e3 < min_warmup_ms:
         fn()
+        torch.cuda.synchronize()
         done += 1
         if done >= 10_000:
             break
-    torch.cuda.synchronize()
 
     # Host enqueue cost per call, measured without synchronizing in between.
     n_probe = 5
