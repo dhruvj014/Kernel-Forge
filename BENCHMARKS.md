@@ -170,6 +170,97 @@ Source: `results/attention_v1_sweep.json`. fp16, B=2, H=16, 256 threads per bloc
 | 128 | 3 | 64 | 64 | 123 | 80.8 | 1 | 17% (smem) | 1.66 |
 | 128 | 4 | 128 | 32 | 212 | 97.1 | 1 | 17% (smem) | 1.64 |
 
+## Attention optimization ablation
+
+Each row adds one optimization to the row above. Representative shape B=2, H=16, N=2048, D=64, fp16, non-causal. The grid column is the geometric-mean speedup over the previous step across every (N, D, causal, dtype) both versions ran.
+
+| step | source | ms | TFLOPS | % of TC peak | speedup vs previous (rep. shape) | speedup vs previous (grid) |
+|---|---|---|---|---|---|---|
+| naive: 3 kernels, N x N scores in DRAM | `attention_naive.json` | 108.438 | 0.32 | 1% | - | - |
+| v1: fused tiles + online softmax, FP32 CUDA cores | `attention_v1.json` | 19.509 | 1.76 | 6% | 5.56x | 5.08x over 32 configs |
+| v2: WMMA Tensor Cores (fp16 tiles, padded smem) | `attention_final.json` | 3.465 | 9.92 | 32% | 5.63x | 4.75x over 40 configs |
+| + conflict-free softmax/O layout | `attention_final.json` | 3.321 | 10.35 | 33% | 1.04x | 1.07x over 40 configs |
+| + cp.async double-buffered K/V (v3) | `attention_final.json` | 3.016 | 11.39 | 37% | 1.10x | 1.13x over 40 configs |
+| v4: mma.sync, softmax + O in registers, ldmatrix, XOR swizzle, tuned tiles | `attention_final.json` | 1.292 | 26.59 | 86% | 2.33x | 2.47x over 40 configs |
+
+## Final attention kernel (v4) vs PyTorch SDPA
+
+Source: `results/attention_final.json` (all kernels measured in the same run). B=2, H=16. Across 40 configs, v4 throughput relative to cuDNN SDPA: geometric mean 100%, min 89%, max 120%.
+
+| dtype | causal | N | D | v4 ms (TFLOPS) | sdpa_cudnn ms (TFLOPS) | sdpa_efficient ms (TFLOPS) | v4 % of cuDNN | v4 % of TC peak |
+|---|---|---|---|---|---|---|---|---|
+| bf16 | no | 512 | 64 | 0.097 (22.08) | 0.095 (22.55) | 0.106 (20.16) | 98% | 71% |
+| bf16 | no | 1024 | 64 | 0.333 (25.81) | 0.355 (24.17) | 0.385 (22.31) | 107% | 83% |
+| bf16 | no | 2048 | 64 | 1.292 (26.59) | 1.275 (26.95) | 1.452 (23.66) | 99% | 86% |
+| bf16 | no | 4096 | 64 | 4.995 (27.51) | 5.034 (27.30) | 5.705 (24.09) | 101% | 89% |
+| bf16 | no | 8192 | 64 | 20.111 (27.34) | 19.819 (27.74) | 22.778 (24.13) | 99% | 88% |
+| bf16 | no | 512 | 128 | 0.187 (22.92) | 0.183 (23.43) | 0.247 (17.40) | 98% | 74% |
+| bf16 | no | 1024 | 128 | 0.715 (24.04) | 0.642 (26.76) | 0.944 (18.20) | 90% | 78% |
+| bf16 | no | 2048 | 128 | 2.744 (25.05) | 2.497 (27.53) | 3.663 (18.76) | 91% | 81% |
+| bf16 | no | 4096 | 128 | 11.081 (24.81) | 9.927 (27.69) | 14.614 (18.81) | 90% | 80% |
+| bf16 | no | 8192 | 128 | 43.709 (25.16) | 39.024 (28.18) | 57.688 (19.06) | 89% | 81% |
+| bf16 | yes | 512 | 64 | 0.070 (15.42) | 0.083 (12.87) | 0.108 (9.99) | 120% | 50% |
+| bf16 | yes | 1024 | 64 | 0.210 (20.41) | 0.248 (17.33) | 0.227 (18.94) | 118% | 66% |
+| bf16 | yes | 2048 | 64 | 0.721 (23.81) | 0.805 (21.33) | 0.797 (21.56) | 112% | 77% |
+| bf16 | yes | 4096 | 64 | 2.671 (25.73) | 2.847 (24.14) | 2.981 (23.05) | 107% | 83% |
+| bf16 | yes | 8192 | 64 | 10.458 (26.28) | 10.996 (25.00) | 11.761 (23.37) | 105% | 85% |
+| bf16 | yes | 512 | 128 | 0.121 (17.77) | 0.127 (16.91) | 0.166 (12.95) | 105% | 57% |
+| bf16 | yes | 1024 | 128 | 0.402 (21.35) | 0.401 (21.40) | 0.548 (15.68) | 100% | 69% |
+| bf16 | yes | 2048 | 128 | 1.470 (23.37) | 1.391 (24.71) | 1.975 (17.39) | 95% | 75% |
+| bf16 | yes | 4096 | 128 | 5.629 (24.42) | 5.170 (26.59) | 7.478 (18.38) | 92% | 79% |
+| bf16 | yes | 8192 | 128 | 22.110 (24.86) | 20.088 (27.37) | 29.475 (18.65) | 91% | 80% |
+| fp16 | no | 512 | 64 | 0.097 (22.08) | 0.095 (22.55) | 0.106 (20.16) | 98% | 71% |
+| fp16 | no | 1024 | 64 | 0.331 (25.97) | 0.355 (24.17) | 0.383 (22.43) | 107% | 84% |
+| fp16 | no | 2048 | 64 | 1.292 (26.59) | 1.274 (26.96) | 1.452 (23.66) | 99% | 86% |
+| fp16 | no | 4096 | 64 | 4.998 (27.50) | 5.035 (27.30) | 5.704 (24.10) | 101% | 89% |
+| fp16 | no | 8192 | 64 | 20.114 (27.33) | 19.820 (27.74) | 22.787 (24.13) | 99% | 88% |
+| fp16 | no | 512 | 128 | 0.187 (22.92) | 0.183 (23.43) | 0.247 (17.40) | 98% | 74% |
+| fp16 | no | 1024 | 128 | 0.715 (24.04) | 0.642 (26.76) | 0.943 (18.22) | 90% | 78% |
+| fp16 | no | 2048 | 128 | 2.745 (25.03) | 2.511 (27.37) | 3.664 (18.76) | 91% | 81% |
+| fp16 | no | 4096 | 128 | 11.083 (24.80) | 9.930 (27.68) | 14.614 (18.81) | 90% | 80% |
+| fp16 | no | 8192 | 128 | 43.715 (25.15) | 39.019 (28.18) | 57.631 (19.08) | 89% | 81% |
+| fp16 | yes | 512 | 64 | 0.070 (15.42) | 0.083 (12.95) | 0.117 (9.20) | 119% | 50% |
+| fp16 | yes | 1024 | 64 | 0.211 (20.36) | 0.248 (17.33) | 0.225 (19.07) | 117% | 66% |
+| fp16 | yes | 2048 | 64 | 0.719 (23.88) | 0.806 (21.32) | 0.797 (21.56) | 112% | 77% |
+| fp16 | yes | 4096 | 64 | 2.673 (25.71) | 2.863 (24.01) | 2.984 (23.03) | 107% | 83% |
+| fp16 | yes | 8192 | 64 | 10.455 (26.29) | 10.995 (25.00) | 11.836 (23.22) | 105% | 85% |
+| fp16 | yes | 512 | 128 | 0.121 (17.77) | 0.127 (16.91) | 0.218 (9.85) | 105% | 57% |
+| fp16 | yes | 1024 | 128 | 0.403 (21.29) | 0.401 (21.40) | 0.548 (15.68) | 99% | 69% |
+| fp16 | yes | 2048 | 128 | 1.473 (23.33) | 1.391 (24.71) | 1.986 (17.31) | 94% | 75% |
+| fp16 | yes | 4096 | 128 | 5.625 (24.43) | 5.170 (26.58) | 7.481 (18.37) | 92% | 79% |
+| fp16 | yes | 8192 | 128 | 22.122 (24.85) | 20.089 (27.37) | 29.479 (18.65) | 91% | 80% |
+
+## Attention v4 occupancy sweep
+
+Source: `results/attention_v4_sweep.json`. fp16, B=2, H=16, geometric mean over N in {1024, 2048, 4096} causal and full. Chosen defaults: D=64: 8 warps, Bc=64, D=128: 4 warps, Bc=32.
+
+| D | config | warps | Br | Bc | regs | smem KB | blocks/SM | occupancy | geomean TFLOPS |
+|---|---|---|---|---|---|---|---|---|---|
+| 64 | 0 | 4 | 64 | 32 | 96 | 24 | 4 | 33% (smem) | 24.48 |
+| 64 | 1 | 4 | 64 | 64 | 126 | 40 | 2 | 17% (smem) | 23.36 |
+| 64 | 2 | 8 | 128 | 32 | 100 | 32 | 2 | 33% (registers) | 22.27 |
+| 64 | 3 | 8 | 128 | 64 | 126 | 48 | 2 | 33% (smem) | 24.85 |
+| 128 | 0 | 4 | 64 | 32 | 167 | 48 | 2 | 17% (smem) | 23.79 |
+| 128 | 1 | 4 | 64 | 64 | 166 | 80 | 1 | 8% (smem) | 20.30 |
+| 128 | 2 | 8 | 128 | 32 | 174 | 64 | 1 | 17% (smem) | 21.65 |
+| 128 | 3 | 8 | 128 | 64 | 184 | 96 | 1 | 17% (smem) | 22.47 |
+
+## Roofline
+
+Source: `results/roofline.json` (scripts/plot_roofline.py). Intensity uses DRAM bytes measured by Nsight Compute, throughput uses the benchmark median.
+
+![roofline](results/plots/roofline.png)
+
+| kernel | FLOP per DRAM byte | TFLOPS | % of TC peak |
+|---|---|---|---|
+| naive | 13.9 | 0.32 | 1% |
+| v1 (FP32 tiles) | 599.5 | 1.76 | 6% |
+| v2 (WMMA) | 368.3 | 9.92 | 32% |
+| v2 + conflict-free | 605.0 | 10.35 | 33% |
+| v3 (+cp.async) | 601.7 | 11.39 | 37% |
+| v4 (mma.sync) | 990.8 | 26.59 | 86% |
+| SDPA cuDNN | 1003.6 | 26.96 | 87% |
+
 ## Attention memory vs sequence length
 
 Source: `results/memory_scaling.json`. Extra memory per call beyond the inputs, B=2, H=16, D=64, fp16.
@@ -209,6 +300,34 @@ Source: `results/memory_scaling.json`. Extra memory per call beyond the inputs, 
 |---|---|---|---|
 | float16 | 140 | 9.77e-04 | 4.29e-04 |
 
+**attn_v2**: 106/106 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 53 | 1.02e-03 | 4.53e-04 |
+| bfloat16 | 53 | 9.93e-03 | 3.52e-03 |
+
+**attn_v3**: 106/106 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 53 | 1.02e-03 | 4.53e-04 |
+| bfloat16 | 53 | 9.93e-03 | 3.52e-03 |
+
+**attn_v4**: 106/106 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 53 | 1.02e-03 | 4.53e-04 |
+| bfloat16 | 53 | 9.93e-03 | 3.52e-03 |
+
+**attn_v4_configs**: 224/224 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 112 | 1.21e-03 | 5.17e-04 |
+| bfloat16 | 112 | 1.07e-02 | 3.63e-03 |
+
 ## Nsight Compute summary
 
 Source: `results/ncu_summary.json`. Profiled with `--set full` at the base clock `ncu` locks to, so durations are longer than the benchmark medians.
@@ -219,3 +338,8 @@ Source: `results/ncu_summary.json`. Profiled with `--set full` at the base clock
 | naive_fp16 | softmax_rows_kernel | 4655.6 | 101.6 | 18 | 128 | 90.3 | 29.2 | 68.7 | 22229 | 0.00 | 0.0 | long_scoreboard, barrier, wait |
 | naive_fp16 | pv_kernel<__half> | 22540.4 | 99.3 | 40 | 0 | 12.0 | 97.4 | 83.5 | 0 | 0.00 | 0.0 | long_scoreboard, lg_throttle, not_selected |
 | v1_fp16 | void attn_v1_kernel<__half, 64, 64, 64,  | 21966.7 | 32.9 | 96 | 49920 | 1.0 | 98.1 | 94.1 | 22256657 | 1.06 | 0.0 | mio_throttle, not_selected, wait |
+| v2_base_fp16 | void attn_v2_kernel<__half, 64, 64> | 4035.9 | 8.3 | 64 | 62464 | 9.0 | 46.0 | 96.3 | 28442624 | 32.24 | 15.2 | wait, short_scoreboard, long_scoreboard |
+| v2_layout_fp16 | void attn_v2_kernel<__half, 64, 64, 1> | 3789.1 | 8.3 | 64 | 62464 | 5.9 | 42.2 | 95.9 | 12582912 | 76.24 | 16.2 | wait, short_scoreboard, long_scoreboard |
+| v3_fp16 | void attn_v2_kernel<__half, 64, 64, 1, 2 | 3373.4 | 8.3 | 72 | 80896 | 6.6 | 43.6 | 97.1 | 13908300 | 76.24 | 18.2 | wait, short_scoreboard, math_pipe_throttle |
+| v4_fp16 | void attn_v4_kernel<__half, 64, 8, 64> | 1442.5 | 32.6 | 126 | 49152 | 9.4 | 25.0 | 91.3 | 19337 | 0.00 | 43.6 | math_pipe_throttle, barrier, wait |
+| sdpa_cudnn_fp16 | cudnn_generated_fort_native_sdpa_sm80_fl | 1425.6 | 16.6 | 229 | 73728 | 9.4 | 12.6 | 83.3 | 199 | 0.12 | 44.1 | math_pipe_throttle, barrier, wait |

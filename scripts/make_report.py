@@ -191,6 +191,100 @@ def section_memory(mem: dict) -> str:
             + table(["N"] + [f"{i} MiB" for i in impls], rows))
 
 
+ABLATION = [  # (impl, step description, results file)
+    ("attn_naive", "naive: 3 kernels, N x N scores in DRAM", "attention_naive"),
+    ("attn_v1", "v1: fused tiles + online softmax, FP32 CUDA cores", "attention_v1"),
+    ("attn_v2_base", "v2: WMMA Tensor Cores (fp16 tiles, padded smem)", "attention_final"),
+    ("attn_v2", "+ conflict-free softmax/O layout", "attention_final"),
+    ("attn_v3", "+ cp.async double-buffered K/V (v3)", "attention_final"),
+    ("attn_v4", "v4: mma.sync, softmax + O in registers, ldmatrix, XOR swizzle, tuned tiles", "attention_final"),
+]
+
+
+def _geomean(xs: list[float]) -> float:
+    import math
+
+    return math.exp(sum(math.log(x) for x in xs) / len(xs)) if xs else float("nan")
+
+
+def section_ablation(hw: dict | None) -> str | None:
+    """Incremental speedup of each optimization at the representative shape and over the common grid."""
+    srcs = {s: load_results(s) for _, _, s in ABLATION}
+    if not all(srcs.values()):
+        return None
+    key = lambda r: (r["B"], r["H"], r["N"], r["D"], r["causal"], r["dtype"])  # noqa: E731
+    by = {impl: {key(r): r for r in srcs[s]["records"] if r["impl"] == impl and r["status"] == "ok"}
+          for impl, _, s in ABLATION}
+    rep = (2, 16, 2048, 64, False, "fp16")
+    peak = hw["roofline"]["peak_fp16_tc_tflops"] if hw else None
+    rows, prev = [], None
+    for impl, desc, src in ABLATION:
+        r = by[impl].get(rep)
+        if r is None:
+            continue
+        # Grid speedup vs the previous step: geometric mean over configs both measured.
+        if prev:
+            common = [k for k in by[impl] if k in by[prev]]
+            grid = _geomean([by[prev][k]["median_ms"] / by[impl][k]["median_ms"] for k in common])
+            step = f"{by[prev][rep]['median_ms'] / r['median_ms']:.2f}x"
+            grid_s = f"{grid:.2f}x over {len(common)} configs"
+        else:
+            step, grid_s = "-", "-"
+        rows.append([desc, f"`{src}.json`", fmt(r["median_ms"], 3), fmt(r["tflops"]),
+                     f"{100 * r['tflops'] / peak:.0f}%" if peak else "-", step, grid_s])
+        prev = impl
+    return ("## Attention optimization ablation\n\nEach row adds one optimization to the row above. Representative "
+            "shape B=2, H=16, N=2048, D=64, fp16, non-causal. The grid column is the geometric-mean speedup over "
+            "the previous step across every (N, D, causal, dtype) both versions ran.\n\n"
+            + table(["step", "source", "ms", "TFLOPS", "% of TC peak", "speedup vs previous (rep. shape)",
+                     "speedup vs previous (grid)"], rows))
+
+
+def section_final(att: dict, hw: dict | None) -> str:
+    key = lambda r: (r["N"], r["D"], r["causal"], r["dtype"])  # noqa: E731
+    idx = {(key(r), r["impl"]): r for r in att["records"] if r["status"] == "ok"}
+    cfgs = sorted({key(r) for r in att["records"]}, key=lambda c: (c[3], c[2], c[1], c[0]))
+    peak = hw["roofline"]["peak_fp16_tc_tflops"] if hw else None
+    rows = []
+    for c in cfgs:
+        v4, cu, ef = idx.get((c, "attn_v4")), idx.get((c, "sdpa_cudnn")), idx.get((c, "sdpa_efficient"))
+        if not v4:
+            continue
+        rows.append([c[3], "yes" if c[2] else "no", c[0], c[1], f"{fmt(v4['median_ms'], 3)} ({fmt(v4['tflops'])})",
+                     f"{fmt(cu['median_ms'], 3)} ({fmt(cu['tflops'])})" if cu else "-",
+                     f"{fmt(ef['median_ms'], 3)} ({fmt(ef['tflops'])})" if ef else "-",
+                     f"{100 * v4['tflops'] / cu['tflops']:.0f}%" if cu else "-",
+                     f"{100 * v4['tflops'] / peak:.0f}%" if peak else "-"])
+    ratios = [idx[(c, "attn_v4")]["tflops"] / idx[(c, "sdpa_cudnn")]["tflops"] for c in cfgs
+              if (c, "attn_v4") in idx and (c, "sdpa_cudnn") in idx]
+    summary = (f"Across {len(ratios)} configs, v4 throughput relative to cuDNN SDPA: geometric mean "
+               f"{100 * _geomean(ratios):.0f}%, min {100 * min(ratios):.0f}%, max {100 * max(ratios):.0f}%.")
+    return ("## Final attention kernel (v4) vs PyTorch SDPA\n\nSource: `results/attention_final.json` (all kernels "
+            f"measured in the same run). B=2, H=16. {summary}\n\n"
+            + table(["dtype", "causal", "N", "D", "v4 ms (TFLOPS)", "sdpa_cudnn ms (TFLOPS)",
+                     "sdpa_efficient ms (TFLOPS)", "v4 % of cuDNN", "v4 % of TC peak"], rows))
+
+
+def section_v4_sweep(sw: dict) -> str:
+    rows = [[r["D"], r["config"], r["warps"], r["Br"], r["Bc"], r["registers"], f"{r['smem_bytes'] / 1024:.0f}",
+             r["blocks_per_sm"], f"{r['occupancy_pct']:.0f}% ({r['limited_by']})", fmt(r["geomean_tflops"])]
+            for r in sw["configs"]]
+    best = ", ".join(f"D={d}: {b['warps']} warps, Bc={b['Bc']}" for d, b in sw["best"].items())
+    return ("## Attention v4 occupancy sweep\n\nSource: `results/attention_v4_sweep.json`. fp16, B=2, H=16, geometric "
+            f"mean over N in {{1024, 2048, 4096}} causal and full. Chosen defaults: {best}.\n\n"
+            + table(["D", "config", "warps", "Br", "Bc", "regs", "smem KB", "blocks/SM", "occupancy",
+                     "geomean TFLOPS"], rows))
+
+
+def section_roofline(rf: dict) -> str:
+    rows = [[p["label"], fmt(p["intensity_flop_per_byte"], 1), fmt(p["tflops"]), f"{p['pct_of_tc_peak']:.0f}%"]
+            for p in rf["points"]]
+    return ("## Roofline\n\nSource: `results/roofline.json` (scripts/plot_roofline.py). Intensity uses DRAM bytes "
+            "measured by Nsight Compute, throughput uses the benchmark median.\n\n"
+            "![roofline](results/plots/roofline.png)"
+            "\n\n" + table(["kernel", "FLOP per DRAM byte", "TFLOPS", "% of TC peak"], rows))
+
+
 def section_correctness() -> str | None:
     parts = []
     for path in sorted((REPO_ROOT / "results").glob("correctness_*.json")):
@@ -243,6 +337,18 @@ def main() -> None:
     sweep = load_results("attention_v1_sweep")
     if sweep:
         parts.append(section_v1_sweep(sweep))
+    abl = section_ablation(hw)
+    if abl:
+        parts.append(abl)
+    final = load_results("attention_final")
+    if final:
+        parts.append(section_final(final, hw))
+    sw4 = load_results("attention_v4_sweep")
+    if sw4:
+        parts.append(section_v4_sweep(sw4))
+    rf = load_results("roofline")
+    if rf:
+        parts.append(section_roofline(rf))
     mem = load_results("memory_scaling")
     if mem:
         parts.append(section_memory(mem))
