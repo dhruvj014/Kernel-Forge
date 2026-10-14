@@ -1,7 +1,9 @@
 """Shared benchmark harness. Every number in results/*.json goes through here.
 
-Protocol (build brief section 4): 10 warmup runs, >= 50 timed runs with one
-cudaEvent pair per run, report median and p10/p90. GPU clocks are logged at
+Protocol (build brief section 4): >= 10 warmup runs (and >= 100 ms of
+warmup), >= 50 timed runs with one cudaEvent pair per run, report median and
+p10/p90. A GPU spin before each timed run keeps Python launch overhead out of
+the measured interval (see time_cuda). GPU clocks are logged at
 the start of each benchmark because the laptop RTX 4060 boosts and throttles.
 """
 
@@ -14,6 +16,7 @@ import platform
 import re
 import statistics
 import subprocess
+import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -39,6 +42,8 @@ class Timing:
     iters: int
     warmup: int
     l2_flushed: bool
+    host_enqueue_ms: float  # CPU time to enqueue one fn() call, measured during warmup
+    launch_guard_ms: float  # GPU spin before each timed run (0 = disabled)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -65,23 +70,90 @@ class L2Flusher:
         self.buf.zero_()
 
 
+_SLEEP_CYCLES_PER_MS: float | None = None
+
+
+def _sleep_cycles_per_ms() -> float:
+    """Calibrates torch.cuda._sleep (a GPU spin loop counted in SM cycles) to milliseconds."""
+    global _SLEEP_CYCLES_PER_MS
+    if _SLEEP_CYCLES_PER_MS is None:
+        cycles = 5_000_000
+        torch.cuda._sleep(cycles)  # first call ramps clocks, not timed
+        s, e = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+        s.record()
+        torch.cuda._sleep(cycles)
+        e.record()
+        torch.cuda.synchronize()
+        _SLEEP_CYCLES_PER_MS = cycles / s.elapsed_time(e)
+    return _SLEEP_CYCLES_PER_MS
+
+
+def cap_to_free_vram(margin_bytes: int = 256 << 20) -> dict:
+    """Makes the torch caching allocator raise OutOfMemoryError at the real VRAM limit.
+
+    On Windows (WDDM) the driver's "CUDA sysmem fallback" policy lets
+    allocations that do not fit in VRAM spill into system RAM over PCIe
+    instead of failing. A kernel then "runs" at a tiny fraction of its real
+    speed and the benchmark records a meaningless number. Capping the
+    allocator to the memory that is free at startup turns that case back into
+    a clean OOM, which is recorded as such.
+    """
+    free, total = torch.cuda.mem_get_info()
+    cap = max(free - margin_bytes, 0)
+    torch.cuda.set_per_process_memory_fraction(cap / total)
+    return {"free_bytes_at_start": free, "total_bytes": total, "allocator_cap_bytes": cap}
+
+
 def time_cuda(
     fn: Callable[[], object],
     warmup: int = 10,
     iters: int = 50,
     flush_l2: bool = False,
+    min_warmup_ms: float = 100.0,
+    launch_guard: bool = True,
 ) -> Timing:
-    """Times `fn` (which should only enqueue GPU work) with CUDA events."""
+    """Times `fn` (which should only enqueue GPU work) with one CUDA event pair per run.
+
+    Launch guard: if enqueueing fn() from Python takes longer than the kernel
+    runs, the GPU reaches the start event, idles until the launch arrives, and
+    that idle time is counted as kernel time. Measured on SDPA at N=512 this
+    inflated medians by up to 5x. So before each timed run we enqueue a GPU
+    spin (torch.cuda._sleep) longer than the host enqueue cost. While the GPU
+    spins, the CPU enqueues start event, fn() and end event, so the interval
+    between the events contains only GPU work.
+
+    Warmup runs at least `warmup` calls and at least `min_warmup_ms` of wall
+    time, so short kernels still give the laptop GPU time to reach boost clocks.
+    """
     flusher = L2Flusher() if flush_l2 else None
-    for _ in range(warmup):
+    done, t0 = 0, time.perf_counter()
+    while done < warmup or (time.perf_counter() - t0) * 1e3 < min_warmup_ms:
         fn()
+        done += 1
+        if done >= 10_000:
+            break
     torch.cuda.synchronize()
+
+    # Host enqueue cost per call, measured without synchronizing in between.
+    n_probe = 5
+    t0 = time.perf_counter()
+    for _ in range(n_probe):
+        fn()
+    host_ms = (time.perf_counter() - t0) * 1e3 / n_probe
+    torch.cuda.synchronize()
+
+    # 5x margin: host enqueue cost is spiky (cuDNN plan lookups, GC, OS jitter),
+    # and a 3x margin still left one bimodal record at N=512 in the Phase 1 run.
+    guard_ms = max(1.0, 5.0 * host_ms + 0.5) if launch_guard else 0.0
+    guard_cycles = int(guard_ms * _sleep_cycles_per_ms()) if launch_guard else 0
 
     starts = [torch.cuda.Event(enable_timing=True) for _ in range(iters)]
     ends = [torch.cuda.Event(enable_timing=True) for _ in range(iters)]
     for i in range(iters):
         if flusher is not None:
             flusher()  # enqueued before the start event, so not timed
+        if guard_cycles:
+            torch.cuda._sleep(guard_cycles)
         starts[i].record()
         fn()
         ends[i].record()
@@ -95,8 +167,10 @@ def time_cuda(
         mean_ms=statistics.fmean(samples),
         min_ms=samples[0],
         iters=iters,
-        warmup=warmup,
+        warmup=done,
         l2_flushed=flush_l2,
+        host_enqueue_ms=host_ms,
+        launch_guard_ms=guard_ms,
     )
 
 
@@ -180,6 +254,22 @@ def gpu_clock_snapshot() -> dict:
     return snap
 
 
+def power_state() -> dict:
+    """AC vs battery and the active power plan. Laptop GPUs clock lower on battery."""
+    state: dict = {}
+    if platform.system() == "Windows":
+        # BatteryStatus 2 means "on AC power" in Win32_Battery.
+        bat = _run(["powershell", "-NoProfile", "-Command",
+                    "(Get-CimInstance Win32_Battery | Select-Object -First 1).BatteryStatus"])
+        if bat and bat.strip().isdigit():
+            state["on_ac_power"] = bat.strip() == "2"
+        scheme = _run(["powercfg", "/getactivescheme"])
+        if scheme:
+            m = re.search(r"\((.+)\)", scheme)
+            state["power_plan"] = m.group(1) if m else scheme.strip()
+    return state
+
+
 def env_metadata() -> dict:
     props = torch.cuda.get_device_properties(0)
     driver = _run(["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"])
@@ -200,6 +290,7 @@ def env_metadata() -> dict:
         "python": platform.python_version(),
         "os": platform.platform(),
         "kf_fast_math": os.environ.get("KF_FAST_MATH", "0") == "1",
+        "power": power_state(),
     }
 
 
