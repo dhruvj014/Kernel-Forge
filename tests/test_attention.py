@@ -212,3 +212,46 @@ class TestValidation:
         q = torch.randn(1, 2, 8, 64, device="cuda", dtype=torch.float16)
         with pytest.raises(ValueError, match="positive"):
             ops.attn_naive(q, q, q, scale=-1.0)
+
+
+def reference_general(q, k, v, causal):
+    """FP32 reference for GQA (repeat K/V heads) and Nq <= Nk (bottom-right aligned causal mask)."""
+    h, hk = q.shape[1], k.shape[1]
+    kf_, vf = k.float().repeat_interleave(h // hk, dim=1), v.float().repeat_interleave(h // hk, dim=1)
+    s = (q.float() @ kf_.transpose(-1, -2)) / math.sqrt(q.shape[-1])
+    if causal:
+        nq, nk = q.shape[2], k.shape[2]
+        rows = torch.arange(nq, device=q.device)[:, None] + (nk - nq)
+        s = s.masked_fill(torch.arange(nk, device=q.device)[None, :] > rows, float("-inf"))
+    return torch.softmax(s, dim=-1) @ vf
+
+
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16], ids=["float16", "bfloat16"])
+@pytest.mark.parametrize("d", HEAD_DIMS)
+@pytest.mark.parametrize("causal", [False, True], ids=["full", "causal"])
+@pytest.mark.parametrize("heads", [(8, 8), (8, 2), (32, 4)], ids=["mha", "gqa4", "gqa8"])
+@pytest.mark.parametrize("nq,nk", [(1, 1), (1, 37), (1, 300), (7, 64), (64, 64), (65, 300), (130, 131)])
+def test_flash_attn_gqa_and_kv_cache(error_log, dtype, d, causal, heads, nq, nk):
+    """Stable API: grouped-query heads and decode / chunked prefill against a longer key sequence."""
+    h, hk = heads
+    g = torch.Generator(device="cuda").manual_seed(nq * 31 + nk + h + d)
+    q = torch.randn(2, h, nq, d, generator=g, device="cuda").to(dtype)
+    k = torch.randn(2, hk, nk, d, generator=g, device="cuda").to(dtype)
+    v = torch.randn(2, hk, nk, d, generator=g, device="cuda").to(dtype)
+    out = ops.flash_attn(q, k, v, causal=causal)
+    ref = reference_general(q, k, v, causal)
+    max_abs = (out.float() - ref).abs().max().item()
+    error_log.add("flash_attn_general", case=f"h{h}_hk{hk}_nq{nq}_nk{nk}", dtype=str(dtype).replace("torch.", ""),
+                  shape=[2, h, nq, nk, d], causal=causal, max_abs_err=max_abs,
+                  max_rel_err=max_abs / ref.abs().max().item(), atol=ATOL[dtype], passed=max_abs <= ATOL[dtype])
+    assert out.shape == q.shape and max_abs <= ATOL[dtype], f"max abs err {max_abs:.3e}"
+
+
+def test_flash_attn_rejects_bad_gqa_and_causal_shapes():
+    q = torch.randn(1, 6, 8, 64, device="cuda", dtype=torch.float16)
+    k = torch.randn(1, 4, 8, 64, device="cuda", dtype=torch.float16)
+    with pytest.raises(ValueError, match="multiple of key/value heads"):
+        ops.flash_attn(q, k, k)
+    q2 = torch.randn(1, 4, 9, 64, device="cuda", dtype=torch.float16)
+    with pytest.raises(ValueError, match="Nq <= Nk"):
+        ops.flash_attn(q2, k, k, causal=True)

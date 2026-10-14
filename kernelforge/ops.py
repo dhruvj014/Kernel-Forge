@@ -212,3 +212,91 @@ def int4_matmul(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, gro
     if x.shape[0] <= GEMV_MAX_M:
         return int4_gemv(x, packed, scales, group_size)
     return int4_gemm(x, packed, scales, group_size)
+
+
+# ---------------------------------------------------------------------------
+# Stable public API (Phase 5). Inference only: no autograd formulas are
+# registered, so calling these on tensors that require grad raises in backward.
+# ---------------------------------------------------------------------------
+
+
+def _check_attn(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, causal: bool) -> None:
+    for name, t in (("q", q), ("k", k), ("v", v)):
+        if not isinstance(t, torch.Tensor) or not t.is_cuda:
+            raise ValueError(f"{name} must be a CUDA tensor")
+        if t.dim() != 4:
+            raise ValueError(f"{name} must be 4-D [B, heads, N, D], got shape {tuple(t.shape)}")
+        if t.dtype not in TC_ATTN_DTYPES:
+            raise TypeError(f"{name} must be fp16 or bf16, got {t.dtype}")
+        if not t.is_contiguous():
+            raise ValueError(f"{name} must be contiguous (call .contiguous() first)")
+    if not (q.dtype == k.dtype == v.dtype):
+        raise TypeError(f"q, k, v must share a dtype, got {q.dtype}, {k.dtype}, {v.dtype}")
+    if k.shape != v.shape:
+        raise ValueError(f"k and v must have the same shape, got {tuple(k.shape)} and {tuple(v.shape)}")
+    (b, h, nq, d), (bk, hk, nk, dk) = q.shape, k.shape
+    if b != bk or d != dk:
+        raise ValueError(f"q {tuple(q.shape)} and k {tuple(k.shape)} must match in batch and head dim")
+    if d not in ATTN_V1_HEAD_DIMS:
+        raise ValueError(f"head dim must be one of {ATTN_V1_HEAD_DIMS}, got {d}")
+    if h % hk != 0:
+        raise ValueError(f"query heads ({h}) must be a multiple of key/value heads ({hk})")
+    if causal and nq > nk:
+        raise ValueError(f"causal attention needs Nq <= Nk (queries are the last Nq positions), got {nq} > {nk}")
+
+
+@torch.library.custom_op("kernelforge::flash_attn", mutates_args=())
+def _flash_attn_op(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, causal: bool, scale: float) -> torch.Tensor:
+    return _ext().attn_v4(q, k, v, causal, scale, -1)
+
+
+@_flash_attn_op.register_fake
+def _(q, k, v, causal, scale):
+    return torch.empty_like(q)
+
+
+def flash_attn(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    causal: bool = False,
+    scale: float | None = None,
+) -> torch.Tensor:
+    """Fused attention forward (the v4 mma.sync kernel), the stable entry point.
+
+    q: [B, H, Nq, D], k and v: [B, Hk, Nk, D], fp16 or bf16, contiguous, D in {64, 128}.
+    H must be a multiple of Hk (grouped-query attention, no K/V copies). Nq may be smaller
+    than Nk (decode or chunked prefill against a KV cache): with causal=True, query i is
+    treated as position Nk - Nq + i and sees keys 0 .. Nk - Nq + i.
+    Returns [B, H, Nq, D] in the input dtype. Inference only (no backward).
+    """
+    _check_attn(q, k, v, causal)
+    return _flash_attn_op(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]))
+
+
+@torch.library.custom_op("kernelforge::int4_matmul", mutates_args=())
+def _int4_matmul_op(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, group_size: int) -> torch.Tensor:
+    return int4_matmul(x, packed, scales, group_size)
+
+
+@_int4_matmul_op.register_fake
+def _(x, packed, scales, group_size):
+    return x.new_empty(x.shape[0], packed.shape[0])
+
+
+def int4_linear(x: torch.Tensor, packed: torch.Tensor, scales: torch.Tensor, group_size: int = 128,
+                bias: torch.Tensor | None = None) -> torch.Tensor:
+    """y = x @ W_hat^T (+ bias) for INT4 weights from kernelforge.quantize. x: [..., K] fp16.
+
+    Leading dimensions are flattened into M, so [B, T, K] works like nn.Linear. The kernel is
+    chosen by M (int4_matmul). Inference only (no backward).
+    """
+    lead = x.shape[:-1]
+    x2 = x.reshape(-1, x.shape[-1])
+    if not x2.is_contiguous():
+        x2 = x2.contiguous()
+    _check_int4(x2, packed, scales, group_size)
+    y = _int4_matmul_op(x2, packed, scales, int(group_size))
+    if bias is not None:
+        y = y + bias
+    return y.reshape(*lead, packed.shape[0])
