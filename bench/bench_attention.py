@@ -55,6 +55,15 @@ def make_impl(name: str, causal: bool):
     if name.startswith("attn_v1_cfg"):
         cfg = int(name.removeprefix("attn_v1_cfg"))
         return lambda q, k, v: ops.flash_attn_v1(q, k, v, causal=causal, config=cfg)
+    if name.startswith("attn_v4_cfg"):
+        cfg4 = int(name.removeprefix("attn_v4_cfg"))
+        return lambda q, k, v: ops.flash_attn_v4(q, k, v, causal=causal, config=cfg4)
+    if name == "attn_v2_base":  # v2 before the conflict-free layout (ablation step 1)
+        return lambda q, k, v: ops.flash_attn_v2(q, k, v, causal=causal, conflict_free=False)
+    # Later kernels: attn_v2 -> ops.flash_attn_v2, attn_v3 -> ops.flash_attn_v3, ...
+    if name.startswith("attn_v") and hasattr(ops, "flash_" + name):
+        fn = getattr(ops, "flash_" + name)
+        return lambda q, k, v: fn(q, k, v, causal=causal)
     if name in SDPA_BACKENDS:
         backend = SDPA_BACKENDS[name]
 

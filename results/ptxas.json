@@ -71,45 +71,285 @@
       "cmem0_bytes": 364,
       "demangled": "<unnamed>::softmax_rows_kernel(float *, int)"
     },
-    "_Z10vector_addPKfS0_Pfi": {
+    "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li128ELi32ELb1ELi2EEEvPKT_S5_S5_PS3_ifb": {
       "arch": "sm_89",
       "stack_bytes": 0,
       "spill_store_bytes": 0,
       "spill_load_bytes": 0,
-      "registers": 12,
-      "barriers": 0,
-      "cmem0_bytes": 380,
-      "demangled": "vector_add(const float *, const float *, float *, int)"
+      "registers": 55,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__nv_bfloat16, (int)128, (int)32, (bool)1, (int)2>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
     },
-    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main12write_kernelEP6float4y": {
+    "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li128ELi32ELb1ELi1EEEvPKT_S5_S5_PS3_ifb": {
       "arch": "sm_89",
       "stack_bytes": 0,
       "spill_store_bytes": 0,
       "spill_load_bytes": 0,
-      "registers": 14,
-      "barriers": 0,
-      "cmem0_bytes": 368,
-      "demangled": "<unnamed>::write_kernel(float4 *, unsigned long long)"
+      "registers": 56,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__nv_bfloat16, (int)128, (int)32, (bool)1, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
     },
-    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main11copy_kernelEPK6float4PS0_y": {
+    "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li128ELi32ELb0ELi1EEEvPKT_S5_S5_PS3_ifb": {
       "arch": "sm_89",
       "stack_bytes": 0,
       "spill_store_bytes": 0,
       "spill_load_bytes": 0,
-      "registers": 16,
-      "barriers": 0,
-      "cmem0_bytes": 376,
-      "demangled": "<unnamed>::copy_kernel(const float4 *, float4 *, unsigned long long)"
+      "registers": 64,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__nv_bfloat16, (int)128, (int)32, (bool)0, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
     },
-    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main11read_kernelEPK6float4yPf": {
+    "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li64ELi64ELb1ELi2EEEvPKT_S5_S5_PS3_ifb": {
       "arch": "sm_89",
       "stack_bytes": 0,
       "spill_store_bytes": 0,
       "spill_load_bytes": 0,
-      "registers": 12,
-      "barriers": 0,
-      "cmem0_bytes": 376,
-      "demangled": "<unnamed>::read_kernel(const float4 *, unsigned long long, float *)"
+      "registers": 80,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__nv_bfloat16, (int)64, (int)64, (bool)1, (int)2>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li64ELi64ELb1ELi1EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 62,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__nv_bfloat16, (int)64, (int)64, (bool)1, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI13__nv_bfloat16Li64ELi64ELb0ELi1EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 63,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__nv_bfloat16, (int)64, (int)64, (bool)0, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI6__halfLi128ELi32ELb1ELi2EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 80,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)128, (int)32, (bool)1, (int)2>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI6__halfLi128ELi32ELb1ELi1EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 63,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)128, (int)32, (bool)1, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI6__halfLi128ELi32ELb0ELi1EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 64,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)128, (int)32, (bool)0, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI6__halfLi64ELi64ELb1ELi2EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 72,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)64, (int)64, (bool)1, (int)2>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI6__halfLi64ELi64ELb1ELi1EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 8,
+      "spill_store_bytes": 8,
+      "spill_load_bytes": 8,
+      "registers": 64,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)64, (int)64, (bool)1, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v214attn_v2_kernelI6__halfLi64ELi64ELb0ELi1EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 64,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v2::attn_v2_kernel<__half, (int)64, (int)64, (bool)0, (int)1>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 184,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 174,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 166,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li128ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 167,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)128, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 126,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 100,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 126,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI13__nv_bfloat16Li64ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 96,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__nv_bfloat16, (int)64, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 184,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 174,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 166,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi128ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 167,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)128, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi8ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 126,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)8, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi8ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 100,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)8, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi4ELi64EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 126,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)4, (int)64>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_ZN2kf7attn_v414attn_v4_kernelI6__halfLi64ELi4ELi32EEEvPKT_S5_S5_PS3_ifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 96,
+      "barriers": 1,
+      "cmem0_bytes": 393,
+      "demangled": "void kf::attn_v4::attn_v4_kernel<__half, (int)64, (int)4, (int)32>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
     },
     "_ZN2kf7attn_v114attn_v1_kernelIfLi128ELi128ELi32ELi256EEEvPKT_S4_S4_PS2_ifb": {
       "arch": "sm_89",
@@ -410,6 +650,46 @@
       "barriers": 1,
       "cmem0_bytes": 393,
       "demangled": "void kf::attn_v1::attn_v1_kernel<__half, (int)64, (int)32, (int)32, (int)256>(const T1 *, const T1 *, const T1 *, T1 *, int, float, bool)"
+    },
+    "_Z10vector_addPKfS0_Pfi": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 12,
+      "barriers": 0,
+      "cmem0_bytes": 380,
+      "demangled": "vector_add(const float *, const float *, float *, int)"
+    },
+    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main12write_kernelEP6float4y": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 14,
+      "barriers": 0,
+      "cmem0_bytes": 368,
+      "demangled": "<unnamed>::write_kernel(float4 *, unsigned long long)"
+    },
+    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main11copy_kernelEPK6float4PS0_y": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 16,
+      "barriers": 0,
+      "cmem0_bytes": 376,
+      "demangled": "<unnamed>::copy_kernel(const float4 *, float4 *, unsigned long long)"
+    },
+    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main11read_kernelEPK6float4yPf": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 12,
+      "barriers": 0,
+      "cmem0_bytes": 376,
+      "demangled": "<unnamed>::read_kernel(const float4 *, unsigned long long, float *)"
     }
   }
 }

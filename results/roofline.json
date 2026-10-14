@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "timestamp": "2026-10-13T22:54:00",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 24,
+    "driver": "610.60",
+    "torch": "2.14.1+cu130",
+    "torch_cuda": "13.0",
+    "nvcc": "13.0.48",
+    "python": "3.12.0",
+    "os": "Windows-11-10.0.26300-SP0",
+    "kf_fast_math": false,
+    "power": {
+      "on_ac_power": true,
+      "power_plan": "Full Throttle Performance"
+    }
+  },
+  "shape": {
+    "B": 2,
+    "H": 16,
+    "N": 2048,
+    "D": 64,
+    "causal": false,
+    "dtype": "fp16"
+  },
+  "flops": 34359738368.0,
+  "ceilings": {
+    "peak_dram_gbps": 234.53,
+    "peak_dram_source": "kf_bandwidth copy kernel (float4), measured",
+    "peak_fp16_tc_tflops": 31.007907490386543,
+    "peak_fp16_tc_source": "cuBLAS HGEMM via torch.matmul, FP32 accumulate, measured",
+    "peak_fp32_tflops": 8.496943962272583,
+    "peak_fp32_source": "cuBLAS SGEMM via torch.matmul, TF32 off, measured",
+    "ridge_fp16_tc_flop_per_byte": 132.21296844918152,
+    "ridge_fp32_flop_per_byte": 36.229667685467035
+  },
+  "points": [
+    {
+      "label": "naive",
+      "impl": "attn_naive",
+      "ncu_profile": "naive_fp16",
+      "median_ms": 108.43801498413086,
+      "tflops": 0.3168606357560889,
+      "dram_bytes": 2480707840.0,
+      "intensity_flop_per_byte": 13.850779932230955,
+      "pct_of_tc_peak": 1.0218704240340177
+    },
+    {
+      "label": "v1 (FP32 tiles)",
+      "impl": "attn_v1",
+      "ncu_profile": "v1_fp16",
+      "median_ms": 19.509248733520508,
+      "tflops": 1.7612025371824593,
+      "dram_bytes": 57318016.0,
+      "intensity_flop_per_byte": 599.4579150820573,
+      "pct_of_tc_peak": 5.679849689078468
+    },
+    {
+      "label": "v2 (WMMA)",
+      "impl": "attn_v2_base",
+      "ncu_profile": "v2_base_fp16",
+      "median_ms": 3.4652159214019775,
+      "tflops": 9.91561251805011,
+      "dram_bytes": 93289600.0,
+      "intensity_flop_per_byte": 368.31263472026893,
+      "pct_of_tc_peak": 31.9776899525525
+    },
+    {
+      "label": "v2 + conflict-free",
+      "impl": "attn_v2",
+      "ncu_profile": "v2_layout_fp16",
+      "median_ms": 3.321344017982483,
+      "tflops": 10.345130821128091,
+      "dram_bytes": 56793984.0,
+      "intensity_flop_per_byte": 604.9890489809625,
+      "pct_of_tc_peak": 33.362879531085476
+    },
+    {
+      "label": "v3 (+cp.async)",
+      "impl": "attn_v3",
+      "ncu_profile": "v3_fp16",
+      "median_ms": 3.0156800746917725,
+      "tflops": 11.393694794203874,
+      "dram_bytes": 57105024.0,
+      "intensity_flop_per_byte": 601.6937908650559,
+      "pct_of_tc_peak": 36.74448138022951
+    },
+    {
+      "label": "v4 (mma.sync)",
+      "impl": "attn_v4",
+      "ncu_profile": "v4_fp16",
+      "median_ms": 1.2922879457473755,
+      "tflops": 26.588299056003777,
+      "dram_bytes": 34677120.0,
+      "intensity_flop_per_byte": 990.8475204399904,
+      "pct_of_tc_peak": 85.74683430104727
+    },
+    {
+      "label": "SDPA cuDNN",
+      "impl": "sdpa_cudnn",
+      "ncu_profile": "sdpa_cudnn_fp16",
+      "median_ms": 1.2743840217590332,
+      "tflops": 26.96184021561509,
+      "dram_bytes": 34237952.0,
+      "intensity_flop_per_byte": 1003.5570576183997,
+      "pct_of_tc_peak": 86.95149849751756
+    }
+  ],
+  "plot": "results/plots/roofline.png"
+}
