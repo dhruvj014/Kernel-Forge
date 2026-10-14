@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "timestamp": "2026-10-14T09:50:45",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 24,
+    "driver": "610.60",
+    "torch": "2.14.1+cu130",
+    "torch_cuda": "13.0",
+    "nvcc": "13.0.48",
+    "python": "3.12.0",
+    "os": "Windows-11-10.0.26300-SP0",
+    "kf_fast_math": false,
+    "power": {
+      "on_ac_power": true,
+      "power_plan": "Full Throttle Performance"
+    }
+  },
+  "protocol": "WikiText-2 raw test, joined with blank lines, non-overlapping 2048-token windows, last partial window dropped",
+  "clocks_start": {
+    "timestamp": "2026-10-14T09:44:42",
+    "clocks": {
+      "clocks": {
+        "graphics": "210 MHz",
+        "sm": "210 MHz",
+        "memory": "405 MHz",
+        "video": "765 MHz"
+      },
+      "applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "default_applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "deferred_clocks": {
+        "memory": "N/A"
+      },
+      "max_clocks": {
+        "graphics": "3105 MHz",
+        "sm": "3105 MHz",
+        "memory": "8001 MHz",
+        "video": "2415 MHz"
+      },
+      "max_customer_boost_clocks": {
+        "graphics": "N/A"
+      },
+      "sm_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "memory_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "clock_policy": {
+        "auto_boost": "N/A",
+        "auto_boost_default": "N/A"
+      }
+    },
+    "status": {
+      "pstate": "P8",
+      "clocks.sm": "210 MHz",
+      "clocks.mem": "405 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "power.draw": "4.90 W",
+      "temperature.gpu": "60",
+      "clocks_throttle_reasons.active": "0x0000000000000001"
+    }
+  },
+  "results": {
+    "tinyllama": {
+      "repo": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+      "dtype": "float16",
+      "test_tokens": 341469,
+      "ctx": 2048,
+      "configs": {
+        "fp16": {
+          "ppl": 7.972190850407966,
+          "mean_nll": 2.075959342155304,
+          "windows": 166,
+          "tokens_scored": 339802,
+          "seconds": 35.2899233000353,
+          "finite": true,
+          "peak_mem_bytes": 2473924608,
+          "attn_stats": {
+            "kernelforge_calls": 0,
+            "sdpa_fallback_calls": 0
+          }
+        },
+        "kf_attn": {
+          "ppl": 7.97225022626168,
+          "mean_nll": 2.075966789999155,
+          "windows": 166,
+          "tokens_scored": 339802,
+          "seconds": 34.3554720999673,
+          "finite": true,
+          "peak_mem_bytes": 2473924608,
+          "attn_stats": {
+            "kernelforge_calls": 3652,
+            "sdpa_fallback_calls": 0
+          }
+        },
+        "int4": {
+          "ppl": 8.77135484374008,
+          "mean_nll": 2.1714912806256588,
+          "windows": 166,
+          "tokens_scored": 339802,
+          "seconds": 36.770997400046326,
+          "finite": true,
+          "peak_mem_bytes": 1036261376,
+          "attn_stats": {
+            "kernelforge_calls": 0,
+            "sdpa_fallback_calls": 0
+          }
+        },
+        "int4_kf_attn": {
+          "ppl": 8.771293075350526,
+          "mean_nll": 2.1714842385428628,
+          "windows": 166,
+          "tokens_scored": 339802,
+          "seconds": 36.772426500043366,
+          "finite": true,
+          "peak_mem_bytes": 1036261376,
+          "attn_stats": {
+            "kernelforge_calls": 3652,
+            "sdpa_fallback_calls": 0
+          }
+        }
+      },
+      "int4_layers_replaced": 154,
+      "group_size": 128,
+      "delta_vs_fp16": {
+        "fp16": 0.0,
+        "kf_attn": 5.937585371462717e-05,
+        "int4": 0.7991639933321135,
+        "int4_kf_attn": 0.7991022249425601
+      }
+    },
+    "qwen2.5-1.5b": {
+      "repo": "Qwen/Qwen2.5-1.5B",
+      "dtype": "float16",
+      "test_tokens": 299078,
+      "ctx": 2048,
+      "configs": {
+        "fp16": {
+          "ppl": 9.264926217122424,
+          "mean_nll": 2.2262358960922755,
+          "windows": 146,
+          "tokens_scored": 298862,
+          "seconds": 44.6874101999565,
+          "finite": true,
+          "peak_mem_bytes": 4342068224,
+          "attn_stats": {
+            "kernelforge_calls": 0,
+            "sdpa_fallback_calls": 0
+          }
+        },
+        "kf_attn": {
+          "ppl": 9.264881610228516,
+          "mean_nll": 2.2262310814828283,
+          "windows": 146,
+          "tokens_scored": 298862,
+          "seconds": 44.08668200002285,
+          "finite": true,
+          "peak_mem_bytes": 4342068224,
+          "attn_stats": {
+            "kernelforge_calls": 4088,
+            "sdpa_fallback_calls": 0
+          }
+        },
+        "int4": {
+          "ppl": 10.853717159568216,
+          "mean_nll": 2.3845076166659904,
+          "windows": 146,
+          "tokens_scored": 298862,
+          "seconds": 49.46066000004066,
+          "finite": true,
+          "peak_mem_bytes": 2433750016,
+          "attn_stats": {
+            "kernelforge_calls": 0,
+            "sdpa_fallback_calls": 0
+          }
+        },
+        "int4_kf_attn": {
+          "ppl": 10.85380486202585,
+          "mean_nll": 2.384515697040853,
+          "windows": 146,
+          "tokens_scored": 298862,
+          "seconds": 49.83042689994909,
+          "finite": true,
+          "peak_mem_bytes": 2433750016,
+          "attn_stats": {
+            "kernelforge_calls": 4088,
+            "sdpa_fallback_calls": 0
+          }
+        }
+      },
+      "int4_layers_replaced": 196,
+      "group_size": 128,
+      "delta_vs_fp16": {
+        "fp16": 0.0,
+        "kf_attn": -4.460689390839434e-05,
+        "int4": 1.588790942445792,
+        "int4_kf_attn": 1.588878644903426
+      }
+    }
+  }
+}
