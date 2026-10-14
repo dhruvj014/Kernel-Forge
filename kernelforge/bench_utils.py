@@ -55,19 +55,26 @@ def _percentile(sorted_vals: list[float], p: float) -> float:
 
 
 class L2Flusher:
-    """Evicts L2 by zeroing a buffer twice the L2 size before a timed run.
+    """Evicts L2 by reading a buffer twice the L2 size before a timed run.
 
     Used for memory-bound kernels so a small working set cannot be served
     from L2 across repeated iterations and inflate bandwidth.
+
+    It reads rather than writes. The first version zeroed the buffer, which
+    left L2 full of dirty lines, so the timed kernel paid for writing them back
+    to DRAM. That added about 8 us per call to both the INT4 GEMV (36.9 vs
+    28.7 us) and cuBLAS (106.5 vs 98.3 us) at TinyLlama's gate_proj shape. A
+    read leaves L2 holding clean lines that are dropped for free, matching
+    Nsight Compute's own cache flush (26.9 and 97.2 us kernel time).
     """
 
     def __init__(self, device: torch.device | int = 0):
         props = torch.cuda.get_device_properties(device)
         l2 = getattr(props, "L2_cache_size", 0) or (32 << 20)
-        self.buf = torch.empty(2 * l2, dtype=torch.uint8, device=device)
+        self.buf = torch.ones(2 * l2 // 4, dtype=torch.int32, device=device)
 
     def __call__(self) -> None:
-        self.buf.zero_()
+        self.buf.max()  # full read of the buffer, result discarded
 
 
 _SLEEP_CYCLES_PER_MS: float | None = None

@@ -15,7 +15,10 @@ param(
     [string]$Label = '',
     [string]$Shape = '--B 2 --H 16 --N 2048 --D 64 --dtype fp16',
     [string]$ExtraArgs = '',
-    [string]$Set = 'full'
+    [string]$Set = 'full',
+    # 'attention' runs bench/profile_target.py, 'gemm' runs bench/profile_gemm.py
+    [ValidateSet('attention', 'gemm')]
+    [string]$Target = 'attention'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -26,7 +29,9 @@ $OutDir = Join-Path $Root 'results\ncu'
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $Rep = Join-Path $OutDir $Label
 
-$targetArgs = @((Join-Path $Root 'bench\profile_target.py'), '--impl', $Impl) + ($Shape -split '\s+') + ($ExtraArgs -split '\s+' | Where-Object { $_ })
+$script = if ($Target -eq 'gemm') { 'bench\profile_gemm.py' } else { 'bench\profile_target.py' }
+if ($Target -eq 'gemm' -and $Shape -like '--B *') { $Shape = '--M 1 --N 5632 --K 2048' }
+$targetArgs = @((Join-Path $Root $script), '--impl', $Impl) + ($Shape -split '\s+') + ($ExtraArgs -split '\s+' | Where-Object { $_ })
 
 # --nvtx-include restricts collection to kernels launched inside the
 # "kf_profile" range, so warmup launches and PyTorch setup kernels are skipped.

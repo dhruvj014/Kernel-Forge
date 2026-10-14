@@ -466,10 +466,324 @@
           "fp32_arith_intensity_flop_per_byte": 20.718577559779277
         }
       ]
+    },
+    "cublas_m1_gate": {
+      "impl": "cublas_fp16",
+      "shape": "--M 1 --N 5632 --K 2048",
+      "report_file": "cublas_m1_gate.ncu-rep",
+      "total_duration_ns": 97152.0,
+      "kernels": [
+        {
+          "kernel": "enable_if<!T7, void>::type kernel<int, int, __half, __half, __half, float, 0, 1, 1, 0, 6, 0, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<const __half>, cublasGemvTensorStridedBatched<const __half>, cublasGemvTensorStridedBatched<__half>, float>>(T13)",
+          "id": 0.0,
+          "duration_ns": 97152.0,
+          "achieved_occupancy_pct": 23.91,
+          "theoretical_occupancy_pct": 25.0,
+          "registers_per_thread": 168.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 272.0,
+          "block_size": 64.0,
+          "grid_size": 1408.0,
+          "dram_throughput_pct": 93.4,
+          "memory_throughput_pct": 93.4,
+          "l1tex_throughput_pct": 29.28,
+          "sm_throughput_pct": 29.28,
+          "l2_hit_rate_pct": 1.04,
+          "l1_hit_rate_pct": 33.09,
+          "smem_bank_conflicts_ld": 2.0,
+          "smem_bank_conflicts_st": 3265.0,
+          "tensor_pipe_active_pct": 0.0,
+          "shared_ld_warp_inst": 25344.0,
+          "shared_st_warp_inst": 14080.0,
+          "smem_wavefronts_pct": 1.27,
+          "fma_pipe_pct": 12.56,
+          "dram_bytes_read": 23092480.0,
+          "dram_bytes_write": 105472.0,
+          "ffma_thread_inst": 11539968.0,
+          "fadd_thread_inst": 90112.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              8.45
+            ],
+            [
+              "lg_throttle",
+              3.62
+            ],
+            [
+              "wait",
+              1.26
+            ]
+          ],
+          "dram_bytes": 23197952.0,
+          "fp32_flops": 23170048.0,
+          "fp32_arith_intensity_flop_per_byte": 0.9987971351953827
+        }
+      ]
+    },
+    "gemv_m1_gate": {
+      "impl": "int4_fused",
+      "shape": "--M 1 --N 5632 --K 2048",
+      "report_file": "gemv_m1_gate_v0.ncu-rep",
+      "total_duration_ns": 26912.0,
+      "kernels": [
+        {
+          "kernel": "void <unnamed>::dequant_gemv_kernel<1>(const __half *, const uint4 *, const __half *, __half *, int, int, int)",
+          "id": 0.0,
+          "duration_ns": 26912.0,
+          "achieved_occupancy_pct": 57.78,
+          "theoretical_occupancy_pct": 66.67,
+          "registers_per_thread": 60.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 128.0,
+          "grid_size": 704.0,
+          "dram_throughput_pct": 88.78,
+          "memory_throughput_pct": 88.78,
+          "l1tex_throughput_pct": 30.76,
+          "sm_throughput_pct": 36.97,
+          "l2_hit_rate_pct": 4.18,
+          "l1_hit_rate_pct": 79.26,
+          "smem_bank_conflicts_ld": 0.0,
+          "smem_bank_conflicts_st": 0.0,
+          "tensor_pipe_active_pct": 0.0,
+          "shared_ld_warp_inst": 0.0,
+          "shared_st_warp_inst": 0.0,
+          "smem_wavefronts_pct": 2.1,
+          "fma_pipe_pct": 26.98,
+          "dram_bytes_read": 5961088.0,
+          "dram_bytes_write": 141056.0,
+          "ffma_thread_inst": 11894784.0,
+          "fadd_thread_inst": 901120.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              14.68
+            ],
+            [
+              "wait",
+              0.53
+            ],
+            [
+              "not_selected",
+              0.51
+            ]
+          ],
+          "dram_bytes": 6102144.0,
+          "fp32_flops": 24690688.0,
+          "fp32_arith_intensity_flop_per_byte": 4.046231619575021
+        }
+      ]
+    },
+    "gemm_m16_gate_bm64": {
+      "impl": "int4_fused",
+      "shape": "--M 16 --N 5632 --K 2048",
+      "report_file": "gemm_m16_gate_v0.ncu-rep",
+      "total_duration_ns": 76480.0,
+      "kernels": [
+        {
+          "kernel": "<unnamed>::dequant_gemm_tc_kernel(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)",
+          "id": 0.0,
+          "duration_ns": 70528.0,
+          "achieved_occupancy_pct": 22.33,
+          "theoretical_occupancy_pct": 25.0,
+          "registers_per_thread": 108.0,
+          "smem_static_per_block_bytes": 28672.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 128.0,
+          "grid_size": 176.0,
+          "dram_throughput_pct": 35.97,
+          "memory_throughput_pct": 36.91,
+          "l1tex_throughput_pct": 36.91,
+          "sm_throughput_pct": 37.19,
+          "l2_hit_rate_pct": 52.78,
+          "l1_hit_rate_pct": 32.58,
+          "smem_bank_conflicts_ld": 137513.0,
+          "smem_bank_conflicts_st": 17717.0,
+          "tensor_pipe_active_pct": 39.31,
+          "shared_ld_warp_inst": 45056.0,
+          "shared_st_warp_inst": 45056.0,
+          "smem_wavefronts_pct": 34.42,
+          "fma_pipe_pct": 11.5,
+          "dram_bytes_read": 6031232.0,
+          "dram_bytes_write": 455680.0,
+          "ffma_thread_inst": 0.0,
+          "fadd_thread_inst": 0.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "math_pipe_throttle",
+              4.05
+            ],
+            [
+              "wait",
+              1.83
+            ],
+            [
+              "barrier",
+              0.79
+            ]
+          ],
+          "dram_bytes": 6486912.0,
+          "fp32_flops": 0,
+          "fp32_arith_intensity_flop_per_byte": 0.0
+        },
+        {
+          "kernel": "<unnamed>::splitk_reduce(const float *, __half *, int, unsigned long long)",
+          "id": 1.0,
+          "duration_ns": 5952.0,
+          "achieved_occupancy_pct": 66.22,
+          "theoretical_occupancy_pct": 100.0,
+          "registers_per_thread": 35.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 256.0,
+          "grid_size": 352.0,
+          "dram_throughput_pct": 64.78,
+          "memory_throughput_pct": 64.78,
+          "l1tex_throughput_pct": 8.68,
+          "sm_throughput_pct": 16.75,
+          "l2_hit_rate_pct": 22.06,
+          "l1_hit_rate_pct": 7.98,
+          "smem_bank_conflicts_ld": 0.0,
+          "smem_bank_conflicts_st": 0.0,
+          "tensor_pipe_active_pct": 0.0,
+          "shared_ld_warp_inst": 0.0,
+          "shared_st_warp_inst": 0.0,
+          "smem_wavefronts_pct": 1.74,
+          "fma_pipe_pct": 7.44,
+          "dram_bytes_read": 726912.0,
+          "dram_bytes_write": 249600.0,
+          "ffma_thread_inst": 0.0,
+          "fadd_thread_inst": 180224.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              28.89
+            ],
+            [
+              "imc_miss",
+              3.74
+            ],
+            [
+              "wait",
+              2.24
+            ]
+          ],
+          "dram_bytes": 976512.0,
+          "fp32_flops": 180224.0,
+          "fp32_arith_intensity_flop_per_byte": 0.18455891991086643
+        }
+      ]
+    },
+    "gemm_m16_gate": {
+      "impl": "int4_fused",
+      "shape": "--M 16 --N 5632 --K 2048",
+      "report_file": "gemm_m16_gate.ncu-rep",
+      "total_duration_ns": 53344.0,
+      "kernels": [
+        {
+          "kernel": "void dequant_gemm_tc_kernel<1, 4, 1, 2>(const __half *, const unsigned int *, const __half *, __half *, float *, int, int, int, int, int)",
+          "id": 0.0,
+          "duration_ns": 47392.0,
+          "achieved_occupancy_pct": 33.0,
+          "theoretical_occupancy_pct": 41.67,
+          "registers_per_thread": 70.0,
+          "smem_static_per_block_bytes": 16384.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 128.0,
+          "grid_size": 176.0,
+          "dram_throughput_pct": 58.34,
+          "memory_throughput_pct": 58.34,
+          "l1tex_throughput_pct": 35.59,
+          "sm_throughput_pct": 23.69,
+          "l2_hit_rate_pct": 52.79,
+          "l1_hit_rate_pct": 32.65,
+          "smem_bank_conflicts_ld": 136210.0,
+          "smem_bank_conflicts_st": 15836.0,
+          "tensor_pipe_active_pct": 14.7,
+          "shared_ld_warp_inst": 45056.0,
+          "shared_st_warp_inst": 45056.0,
+          "smem_wavefronts_pct": 31.96,
+          "fma_pipe_pct": 11.77,
+          "dram_bytes_read": 6028160.0,
+          "dram_bytes_write": 1040128.0,
+          "ffma_thread_inst": 0.0,
+          "fadd_thread_inst": 0.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              8.03
+            ],
+            [
+              "barrier",
+              2.41
+            ],
+            [
+              "wait",
+              2.01
+            ]
+          ],
+          "dram_bytes": 7068288.0,
+          "fp32_flops": 0,
+          "fp32_arith_intensity_flop_per_byte": 0.0
+        },
+        {
+          "kernel": "splitk_reduce(const float *, __half *, int, unsigned long long)",
+          "id": 1.0,
+          "duration_ns": 5952.0,
+          "achieved_occupancy_pct": 69.11,
+          "theoretical_occupancy_pct": 100.0,
+          "registers_per_thread": 35.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 256.0,
+          "grid_size": 352.0,
+          "dram_throughput_pct": 63.72,
+          "memory_throughput_pct": 63.72,
+          "l1tex_throughput_pct": 8.64,
+          "sm_throughput_pct": 16.67,
+          "l2_hit_rate_pct": 22.05,
+          "l1_hit_rate_pct": 7.88,
+          "smem_bank_conflicts_ld": 0.0,
+          "smem_bank_conflicts_st": 0.0,
+          "tensor_pipe_active_pct": 0.0,
+          "shared_ld_warp_inst": 0.0,
+          "shared_st_warp_inst": 0.0,
+          "smem_wavefronts_pct": 1.73,
+          "fma_pipe_pct": 7.61,
+          "dram_bytes_read": 726912.0,
+          "dram_bytes_write": 238720.0,
+          "ffma_thread_inst": 0.0,
+          "fadd_thread_inst": 180224.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              29.04
+            ],
+            [
+              "imc_miss",
+              3.84
+            ],
+            [
+              "wait",
+              2.24
+            ]
+          ],
+          "dram_bytes": 965632.0,
+          "fp32_flops": 180224.0,
+          "fp32_arith_intensity_flop_per_byte": 0.18663838812301167
+        }
+      ]
     }
   },
   "meta": {
-    "timestamp": "2026-10-13T22:53:39",
+    "timestamp": "2026-10-14T08:17:35",
     "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
     "compute_capability": "8.9",
     "sm_count": 24,
