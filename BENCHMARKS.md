@@ -106,6 +106,85 @@ Source: `results/attention_naive.json`. Median of 50 timed runs after at least 1
 | fp16 | yes | 2 | 16 | 4096 | 128 | 423.370 (0.32) | 7.698 (17.85) | 5.172 (26.57) | 55.0x | 81.9x |
 | fp16 | yes | 2 | 16 | 8192 | 128 | oom | 29.816 (18.44) | 20.333 (27.04) | - | - |
 
+## Attention v1: fused, online softmax, FP32 CUDA cores
+
+Sources: `results/attention_v1.json` (v1 and SDPA measured in the same run) and `results/attention_naive.json` (naive). B=2, H=16. v1 does its math as FP32 FMAs on CUDA cores, so its ceiling is the measured FP32 peak, not the Tensor Core peak.
+
+| dtype | causal | N | D | naive ms | v1 ms (TFLOPS) | sdpa_cudnn ms (TFLOPS) | v1 speedup vs naive | v1 % of FP32 peak | v1 % of cuDNN |
+|---|---|---|---|---|---|---|---|---|---|
+| bf16 | no | 512 | 64 | 6.62 | 1.248 (1.72) | 0.095 (22.55) | 5.3x | 20% | 8% |
+| bf16 | no | 1024 | 64 | 26.05 | 4.947 (1.74) | 0.357 (24.04) | 5.3x | 20% | 7% |
+| bf16 | no | 2048 | 64 | 108.81 | 19.614 (1.75) | 1.275 (26.95) | 5.5x | 21% | 6% |
+| bf16 | no | 4096 | 64 | 422.96 | 78.491 (1.75) | 5.036 (27.29) | 5.4x | 21% | 6% |
+| bf16 | no | 8192 | 64 | oom | 311.685 (1.76) | 19.822 (27.74) | - | 21% | 6% |
+| bf16 | no | 512 | 128 | 12.66 | 2.544 (1.69) | 0.184 (23.30) | 5.0x | 20% | 7% |
+| bf16 | no | 1024 | 128 | 51.94 | 10.317 (1.67) | 0.642 (26.76) | 5.0x | 20% | 6% |
+| bf16 | no | 2048 | 128 | 211.37 | 40.067 (1.72) | 2.511 (27.37) | 5.3x | 20% | 6% |
+| bf16 | no | 4096 | 128 | 823.07 | 159.827 (1.72) | 9.928 (27.69) | 5.1x | 20% | 6% |
+| bf16 | no | 8192 | 128 | oom | 634.853 (1.73) | 39.015 (28.18) | - | 20% | 6% |
+| bf16 | yes | 512 | 64 | 3.33 | 0.772 (1.39) | 0.083 (12.95) | 4.3x | 16% | 11% |
+| bf16 | yes | 1024 | 64 | 13.73 | 2.763 (1.55) | 0.250 (17.19) | 5.0x | 18% | 9% |
+| bf16 | yes | 2048 | 64 | 57.25 | 10.474 (1.64) | 0.806 (21.32) | 5.5x | 19% | 8% |
+| bf16 | yes | 4096 | 64 | 222.55 | 40.240 (1.71) | 2.865 (23.99) | 5.5x | 20% | 7% |
+| bf16 | yes | 8192 | 64 | oom | 157.700 (1.74) | 10.999 (24.99) | - | 21% | 7% |
+| bf16 | yes | 512 | 128 | 6.51 | 1.537 (1.40) | 0.128 (16.78) | 4.2x | 16% | 8% |
+| bf16 | yes | 1024 | 128 | 26.11 | 5.483 (1.57) | 0.400 (21.45) | 4.8x | 18% | 7% |
+| bf16 | yes | 2048 | 128 | 109.29 | 20.903 (1.64) | 1.397 (24.60) | 5.2x | 19% | 7% |
+| bf16 | yes | 4096 | 128 | 423.40 | 81.611 (1.68) | 5.172 (26.58) | 5.2x | 20% | 6% |
+| bf16 | yes | 8192 | 128 | oom | 321.175 (1.71) | 20.091 (27.36) | - | 20% | 6% |
+| fp16 | no | 512 | 64 | 6.50 | 1.248 (1.72) | 0.095 (22.55) | 5.2x | 20% | 8% |
+| fp16 | no | 1024 | 64 | 25.98 | 4.974 (1.73) | 0.356 (24.11) | 5.2x | 20% | 7% |
+| fp16 | no | 2048 | 64 | 108.44 | 19.509 (1.76) | 1.275 (26.95) | 5.6x | 21% | 7% |
+| fp16 | no | 4096 | 64 | 421.99 | 78.481 (1.75) | 5.036 (27.29) | 5.4x | 21% | 6% |
+| fp16 | no | 8192 | 64 | oom | 311.752 (1.76) | 19.823 (27.73) | - | 21% | 6% |
+| fp16 | no | 512 | 128 | 12.67 | 2.544 (1.69) | 0.184 (23.30) | 5.0x | 20% | 7% |
+| fp16 | no | 1024 | 128 | 51.93 | 10.383 (1.65) | 0.642 (26.76) | 5.0x | 19% | 6% |
+| fp16 | no | 2048 | 128 | 210.87 | 40.071 (1.71) | 2.512 (27.36) | 5.3x | 20% | 6% |
+| fp16 | no | 4096 | 128 | 822.77 | 159.841 (1.72) | 9.928 (27.69) | 5.1x | 20% | 6% |
+| fp16 | no | 8192 | 128 | oom | 634.878 (1.73) | 39.026 (28.17) | - | 20% | 6% |
+| fp16 | yes | 512 | 64 | 3.33 | 0.773 (1.39) | 0.083 (12.95) | 4.3x | 16% | 11% |
+| fp16 | yes | 1024 | 64 | 13.73 | 2.766 (1.55) | 0.249 (17.26) | 5.0x | 18% | 9% |
+| fp16 | yes | 2048 | 64 | 57.37 | 10.437 (1.65) | 0.805 (21.35) | 5.5x | 19% | 8% |
+| fp16 | yes | 4096 | 64 | 222.51 | 40.233 (1.71) | 2.865 (23.99) | 5.5x | 20% | 7% |
+| fp16 | yes | 8192 | 64 | oom | 170.703 (1.61) | 10.997 (25.00) | - | 19% | 6% |
+| fp16 | yes | 512 | 128 | 6.39 | 1.537 (1.40) | 0.128 (16.78) | 4.2x | 16% | 8% |
+| fp16 | yes | 1024 | 128 | 26.19 | 5.484 (1.57) | 0.400 (21.45) | 4.8x | 18% | 7% |
+| fp16 | yes | 2048 | 128 | 108.74 | 21.021 (1.63) | 1.398 (24.58) | 5.2x | 19% | 7% |
+| fp16 | yes | 4096 | 128 | 423.37 | 81.618 (1.68) | 5.173 (26.57) | 5.2x | 20% | 6% |
+| fp16 | yes | 8192 | 128 | oom | 321.176 (1.71) | 20.090 (27.36) | - | 20% | 6% |
+
+## Attention v1 tile sweep
+
+Source: `results/attention_v1_sweep.json`. fp16, B=2, H=16, 256 threads per block, geometric mean over N in {1024, 2048, 4096} causal and full. Occupancy is theoretical (registers from ptxas, shared memory from the tile sizes). Chosen defaults: D=64: Br=64, Bc=64, D=128: Br=64, Bc=64.
+
+| D | config | Br | Bc | regs | smem KB | blocks/SM | occupancy | geomean TFLOPS |
+|---|---|---|---|---|---|---|---|---|
+| 64 | 0 | 32 | 32 | 71 | 20.4 | 3 | 50% (registers) | 1.43 |
+| 64 | 1 | 32 | 64 | 72 | 32.5 | 2 | 33% (smem) | 1.49 |
+| 64 | 2 | 64 | 32 | 96 | 32.6 | 2 | 33% (smem) | 1.57 |
+| 64 | 3 | 64 | 64 | 96 | 48.8 | 2 | 33% (smem) | 1.69 |
+| 64 | 4 | 128 | 32 | 123 | 57.1 | 1 | 17% (smem) | 1.62 |
+| 128 | 0 | 32 | 32 | 79 | 36.4 | 2 | 33% (smem) | 1.53 |
+| 128 | 1 | 32 | 64 | 96 | 56.5 | 1 | 17% (smem) | 1.53 |
+| 128 | 2 | 64 | 32 | 116 | 56.6 | 1 | 17% (smem) | 1.59 |
+| 128 | 3 | 64 | 64 | 123 | 80.8 | 1 | 17% (smem) | 1.66 |
+| 128 | 4 | 128 | 32 | 212 | 97.1 | 1 | 17% (smem) | 1.64 |
+
+## Attention memory vs sequence length
+
+Source: `results/memory_scaling.json`. Extra memory per call beyond the inputs, B=2, H=16, D=64, fp16.
+
+![memory scaling](results/plots/memory_scaling.png)
+
+| N | attn_naive MiB | attn_v1 MiB | sdpa_cudnn MiB |
+|---|---|---|---|
+| 512 | 34.0 | 2.0 | 2.0 |
+| 1024 | 132.0 | 4.0 | 4.0 |
+| 2048 | 520.0 | 8.0 | 8.0 |
+| 4096 | 2064.0 | 16.0 | 16.0 |
+| 8192 | oom | 32.0 | 32.0 |
+| 16384 | oom | 64.0 | 64.0 |
+
 ## Correctness vs FP32 reference
 
 **attn_naive**: 159/159 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
@@ -116,12 +195,27 @@ Source: `results/attention_naive.json`. Median of 50 timed runs after at least 1
 | bfloat16 | 53 | 7.81e-03 | 3.52e-03 |
 | float32 | 53 | 8.34e-07 | 5.43e-07 |
 
+**attn_v1**: 159/159 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 53 | 9.77e-04 | 4.53e-04 |
+| bfloat16 | 53 | 7.81e-03 | 3.52e-03 |
+| float32 | 53 | 5.36e-05 | 1.26e-05 |
+
+**attn_v1_configs**: 140/140 cases passed (rel err = max|out - ref| / max|ref| over the whole output tensor).
+
+| dtype | cases | worst max abs err | worst max rel err |
+|---|---|---|---|
+| float16 | 140 | 9.77e-04 | 4.29e-04 |
+
 ## Nsight Compute summary
 
 Source: `results/ncu_summary.json`. Profiled with `--set full` at the base clock `ncu` locks to, so durations are longer than the benchmark medians.
 
-| profile | kernel | us | occupancy % | regs | smem B/block | DRAM % | L1/TEX % | L2 hit % | smem bank conflicts | tensor pipe % | top stalls |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| naive_fp16 | qk_scores_kernel<__half> | 98713.0 | 79.4 | 37 | 0 | 3.5 | 98.6 | 97.5 | 0 | 0.0 | lg_throttle, long_scoreboard, not_selected |
-| naive_fp16 | softmax_rows_kernel | 4655.6 | 101.6 | 18 | 128 | 90.3 | 29.2 | 68.7 | 22229 | 0.0 | long_scoreboard, barrier, wait |
-| naive_fp16 | pv_kernel<__half> | 22540.4 | 99.3 | 40 | 0 | 12.0 | 97.4 | 83.5 | 0 | 0.0 | long_scoreboard, lg_throttle, not_selected |
+| profile | kernel | us | occupancy % | regs | smem B/block | DRAM % | L1/TEX % | L2 hit % | smem bank conflicts | LDS per FFMA | tensor pipe % | top stalls |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| naive_fp16 | qk_scores_kernel<__half> | 98713.0 | 79.4 | 37 | 0 | 3.5 | 98.6 | 97.5 | 0 | 0.00 | 0.0 | lg_throttle, long_scoreboard, not_selected |
+| naive_fp16 | softmax_rows_kernel | 4655.6 | 101.6 | 18 | 128 | 90.3 | 29.2 | 68.7 | 22229 | 0.00 | 0.0 | long_scoreboard, barrier, wait |
+| naive_fp16 | pv_kernel<__half> | 22540.4 | 99.3 | 40 | 0 | 12.0 | 97.4 | 83.5 | 0 | 0.00 | 0.0 | long_scoreboard, lg_throttle, not_selected |
+| v1_fp16 | void attn_v1_kernel<__half, 64, 64, 64,  | 21966.7 | 32.9 | 96 | 49920 | 1.0 | 98.1 | 94.1 | 22256657 | 1.06 | 0.0 | mio_throttle, not_selected, wait |

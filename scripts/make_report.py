@@ -130,6 +130,67 @@ def section_attention(att: dict, title: str, src: str) -> str:
     return f"## {title}\n\nSource: `{src}`. {note}\n\n" + table(headers, rows)
 
 
+def section_v1(att: dict, naive: dict | None, hw: dict | None) -> str:
+    """Fused v1 vs naive (from the Phase 1 run) and SDPA (re-measured in the same run as v1)."""
+    key = lambda r: (r["B"], r["H"], r["N"], r["D"], r["causal"], r["dtype"])  # noqa: E731
+    idx = {(key(r), r["impl"]): r for r in att["records"]}
+    nidx = {key(r): r for r in (naive or {}).get("records", []) if r["impl"] == "attn_naive"}
+    fp32_peak = hw["roofline"]["peak_fp32_tflops"] if hw else None
+    cfgs = sorted({key(r) for r in att["records"]}, key=lambda c: (c[5], c[4], c[3], c[2]))
+    rows = []
+    for c in cfgs:
+        v1, cud = idx.get((c, "attn_v1")), idx.get((c, "sdpa_cudnn"))
+        nv = nidx.get(c)
+        ok = lambda r: r is not None and r["status"] == "ok"  # noqa: E731
+        rows.append([
+            c[5], "yes" if c[4] else "no", c[2], c[3],
+            f"{fmt(nv['median_ms'], 2)}" if ok(nv) else (nv["status"] if nv else "-"),
+            f"{fmt(v1['median_ms'], 3)} ({fmt(v1['tflops'])})" if ok(v1) else (v1["status"] if v1 else "-"),
+            f"{fmt(cud['median_ms'], 3)} ({fmt(cud['tflops'])})" if ok(cud) else "-",
+            f"{nv['median_ms'] / v1['median_ms']:.1f}x" if ok(nv) and ok(v1) else "-",
+            f"{100 * v1['tflops'] / fp32_peak:.0f}%" if ok(v1) and fp32_peak else "-",
+            f"{100 * v1['tflops'] / cud['tflops']:.0f}%" if ok(v1) and ok(cud) else "-",
+        ])
+    return ("## Attention v1: fused, online softmax, FP32 CUDA cores\n\n"
+            "Sources: `results/attention_v1.json` (v1 and SDPA measured in the same run) and "
+            "`results/attention_naive.json` (naive). B=2, H=16. v1 does its math as FP32 FMAs on CUDA cores, "
+            "so its ceiling is the measured FP32 peak, not the Tensor Core peak.\n\n"
+            + table(["dtype", "causal", "N", "D", "naive ms", "v1 ms (TFLOPS)", "sdpa_cudnn ms (TFLOPS)",
+                     "v1 speedup vs naive", "v1 % of FP32 peak", "v1 % of cuDNN"], rows))
+
+
+def section_v1_sweep(sw: dict) -> str:
+    rows = [[r["D"], r["config"], r["Br"], r["Bc"], r["registers"], f"{r['smem_bytes'] / 1024:.1f}",
+             r["blocks_per_sm"], f"{r['occupancy_pct']:.0f}% ({r['limited_by']})", fmt(r["geomean_tflops"])]
+            for r in sw["configs"]]
+    best = ", ".join(f"D={d}: Br={b['Br']}, Bc={b['Bc']}" for d, b in sw["best"].items())
+    return ("## Attention v1 tile sweep\n\nSource: `results/attention_v1_sweep.json`. fp16, B=2, H=16, 256 threads "
+            "per block, geometric mean over N in {1024, 2048, 4096} causal and full. Occupancy is theoretical "
+            f"(registers from ptxas, shared memory from the tile sizes). Chosen defaults: {best}.\n\n"
+            + table(["D", "config", "Br", "Bc", "regs", "smem KB", "blocks/SM", "occupancy",
+                     "geomean TFLOPS"], rows))
+
+
+def section_memory(mem: dict) -> str:
+    impls = list(dict.fromkeys(r["impl"] for r in mem["records"]))
+    ns = sorted({r["N"] for r in mem["records"]})
+    idx = {(r["impl"], r["N"]): r for r in mem["records"]}
+    rows = []
+    for n in ns:
+        row = [n]
+        for i in impls:
+            r = idx.get((i, n))
+            if r and r["status"] == "ok":
+                row.append(f"{r['peak_extra_bytes'] / 2**20:.1f}")
+            else:
+                row.append(r["status"] if r else "-")
+        rows.append(row)
+    return (f"## Attention memory vs sequence length\n\nSource: `results/memory_scaling.json`. Extra memory per "
+            f"call beyond the inputs, B={mem['B']}, H={mem['H']}, D={mem['D']}, fp16.\n\n"
+            f"![memory scaling]({mem['plot'].replace(chr(92), '/')})\n\n"
+            + table(["N"] + [f"{i} MiB" for i in impls], rows))
+
+
 def section_correctness() -> str | None:
     parts = []
     for path in sorted((REPO_ROOT / "results").glob("correctness_*.json")):
@@ -149,16 +210,18 @@ def section_ncu(ncu: dict) -> str:
             name = str(k["kernel"]).split("(")[0].split("::")[-1][:40]
             smem = (k.get("smem_static_per_block_bytes") or 0) + (k.get("smem_dynamic_per_block_bytes") or 0)
             conflicts = (k.get("smem_bank_conflicts_ld") or 0) + (k.get("smem_bank_conflicts_st") or 0)
+            ffma_warp = (k.get("ffma_thread_inst") or 0) / 32
+            lds_per_ffma = (k.get("shared_ld_warp_inst") or 0) / ffma_warp if ffma_warp else None
             rows.append([label, name, fmt((k.get("duration_ns") or 0) / 1e3, 1),
                          fmt(k.get("achieved_occupancy_pct"), 1), fmt(k.get("registers_per_thread"), 0),
                          fmt(smem, 0), fmt(k.get("dram_throughput_pct"), 1), fmt(k.get("l1tex_throughput_pct"), 1),
                          fmt(k.get("l2_hit_rate_pct"), 1),
-                         fmt(conflicts, 0), fmt(k.get("tensor_pipe_active_pct"), 1),
+                         fmt(conflicts, 0), fmt(lds_per_ffma, 2), fmt(k.get("tensor_pipe_active_pct"), 1),
                          ", ".join(s for s, _ in k.get("top_stalls", []))])
     return ("## Nsight Compute summary\n\nSource: `results/ncu_summary.json`. Profiled with `--set full` at the "
             "base clock `ncu` locks to, so durations are longer than the benchmark medians.\n\n"
             + table(["profile", "kernel", "us", "occupancy %", "regs", "smem B/block", "DRAM %", "L1/TEX %", "L2 hit %",
-                     "smem bank conflicts", "tensor pipe %", "top stalls"], rows))
+                     "smem bank conflicts", "LDS per FFMA", "tensor pipe %", "top stalls"], rows))
 
 
 def main() -> None:
@@ -174,6 +237,15 @@ def main() -> None:
     if att:
         parts.append(section_attention(att, "Attention: naive baseline vs PyTorch SDPA",
                                        "results/attention_naive.json"))
+    v1 = load_results("attention_v1")
+    if v1:
+        parts.append(section_v1(v1, att, hw))
+    sweep = load_results("attention_v1_sweep")
+    if sweep:
+        parts.append(section_v1_sweep(sweep))
+    mem = load_results("memory_scaling")
+    if mem:
+        parts.append(section_memory(mem))
     corr = section_correctness()
     if corr:
         parts.append(corr)
