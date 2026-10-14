@@ -11,7 +11,8 @@ SHAPE="--B 2 --H 16 --N 2048 --D 64 --dtype fp16"
 mkdir -p "$ROOT/results/ncu"
 REP="$ROOT/results/ncu/$LABEL"
 
-ncu --set full --import-source yes --nvtx --nvtx-include "kf_profile/" \
+EXTRA="smsp__sass_thread_inst_executed_op_ffma_pred_on.sum,smsp__sass_thread_inst_executed_op_fadd_pred_on.sum,smsp__sass_thread_inst_executed_op_fmul_pred_on.sum"
+ncu --set full --metrics "$EXTRA" --import-source yes --nvtx --nvtx-include "kf_profile/" \
     --target-processes all -f -o "$REP" \
     "$PY" "$ROOT/bench/profile_target.py" --impl "$IMPL" $SHAPE "$@"
 

@@ -1,0 +1,158 @@
+{
+  "profiles": {
+    "naive_fp16": {
+      "impl": "attn_naive",
+      "shape": "--B 2 --H 16 --N 2048 --D 64 --dtype fp16",
+      "report_file": "naive_fp16.ncu-rep",
+      "total_duration_ns": 125909024.0,
+      "kernels": [
+        {
+          "kernel": "void <unnamed>::qk_scores_kernel<__half>(const T1 *, const T1 *, float *, int, int, float, bool)",
+          "id": 0.0,
+          "duration_ns": 98713024.0,
+          "achieved_occupancy_pct": 79.43,
+          "theoretical_occupancy_pct": 100.0,
+          "registers_per_thread": 37.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 256.0,
+          "grid_size": 524288.0,
+          "dram_throughput_pct": 3.45,
+          "memory_throughput_pct": 98.61,
+          "l1tex_throughput_pct": 98.61,
+          "sm_throughput_pct": 22.3,
+          "l2_hit_rate_pct": 97.55,
+          "l1_hit_rate_pct": 99.1,
+          "smem_bank_conflicts_ld": 0.0,
+          "smem_bank_conflicts_st": 0.0,
+          "tensor_pipe_active_pct": 0.0,
+          "dram_bytes_read": 62276864.0,
+          "dram_bytes_write": 727800576.0,
+          "ffma_thread_inst": 8589934592.0,
+          "fadd_thread_inst": 0.0,
+          "fmul_thread_inst": 134217728.0,
+          "top_stalls": [
+            [
+              "lg_throttle",
+              88.97
+            ],
+            [
+              "long_scoreboard",
+              5.55
+            ],
+            [
+              "not_selected",
+              2.53
+            ]
+          ],
+          "dram_bytes": 790077440.0,
+          "fp32_flops": 17314086912.0,
+          "fp32_arith_intensity_flop_per_byte": 21.914417543677743
+        },
+        {
+          "kernel": "<unnamed>::softmax_rows_kernel(float *, int)",
+          "id": 1.0,
+          "duration_ns": 4655552.0,
+          "achieved_occupancy_pct": 101.56,
+          "theoretical_occupancy_pct": 100.0,
+          "registers_per_thread": 18.0,
+          "smem_static_per_block_bytes": 128.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 256.0,
+          "grid_size": 65536.0,
+          "dram_throughput_pct": 90.27,
+          "memory_throughput_pct": 90.27,
+          "l1tex_throughput_pct": 29.25,
+          "sm_throughput_pct": 23.24,
+          "l2_hit_rate_pct": 68.68,
+          "l1_hit_rate_pct": 76.15,
+          "smem_bank_conflicts_ld": 14012.0,
+          "smem_bank_conflicts_st": 8217.0,
+          "tensor_pipe_active_pct": 0.0,
+          "dram_bytes_read": 537071104.0,
+          "dram_bytes_write": 537785216.0,
+          "ffma_thread_inst": 570425344.0,
+          "fadd_thread_inst": 513802240.0,
+          "fmul_thread_inst": 268435456.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              46.64
+            ],
+            [
+              "barrier",
+              5.83
+            ],
+            [
+              "wait",
+              2.33
+            ]
+          ],
+          "dram_bytes": 1074856320.0,
+          "fp32_flops": 1923088384.0,
+          "fp32_arith_intensity_flop_per_byte": 1.7891585584201617
+        },
+        {
+          "kernel": "void <unnamed>::pv_kernel<__half>(const float *, const T1 *, T1 *, int, int, bool)",
+          "id": 2.0,
+          "duration_ns": 22540448.0,
+          "achieved_occupancy_pct": 99.26,
+          "theoretical_occupancy_pct": 100.0,
+          "registers_per_thread": 40.0,
+          "smem_static_per_block_bytes": 0.0,
+          "smem_dynamic_per_block_bytes": 0.0,
+          "block_size": 256.0,
+          "grid_size": 8192.0,
+          "dram_throughput_pct": 12.02,
+          "memory_throughput_pct": 97.39,
+          "l1tex_throughput_pct": 97.39,
+          "sm_throughput_pct": 97.39,
+          "l2_hit_rate_pct": 83.46,
+          "l1_hit_rate_pct": 88.49,
+          "smem_bank_conflicts_ld": 0.0,
+          "smem_bank_conflicts_st": 0.0,
+          "tensor_pipe_active_pct": 0.0,
+          "dram_bytes_read": 559045888.0,
+          "dram_bytes_write": 56728192.0,
+          "ffma_thread_inst": 8589934592.0,
+          "fadd_thread_inst": 0.0,
+          "fmul_thread_inst": 0.0,
+          "top_stalls": [
+            [
+              "long_scoreboard",
+              13.15
+            ],
+            [
+              "lg_throttle",
+              11.68
+            ],
+            [
+              "not_selected",
+              2.25
+            ]
+          ],
+          "dram_bytes": 615774080.0,
+          "fp32_flops": 17179869184.0,
+          "fp32_arith_intensity_flop_per_byte": 27.899630305971957
+        }
+      ]
+    }
+  },
+  "meta": {
+    "timestamp": "2026-10-13T18:26:25",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 24,
+    "driver": "610.60",
+    "torch": "2.14.1+cu130",
+    "torch_cuda": "13.0",
+    "nvcc": "13.0.48",
+    "python": "3.12.0",
+    "os": "Windows-11-10.0.26300-SP0",
+    "kf_fast_math": false,
+    "power": {
+      "on_ac_power": true,
+      "power_plan": "Full Throttle Performance"
+    }
+  }
+}

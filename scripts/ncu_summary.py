@@ -22,27 +22,35 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from kernelforge.bench_utils import RESULTS_DIR, env_metadata  # noqa: E402
 
+# Each key maps to candidate metric names, first match wins. Names differ
+# between Nsight Compute versions and architectures (Ada exposes the _v2
+# tensor-pipe counters and gpu__dram_throughput instead of dram__throughput).
 METRICS = {
-    "duration_ns": "gpu__time_duration.sum",
-    "achieved_occupancy_pct": "sm__warps_active.avg.pct_of_peak_sustained_active",
-    "theoretical_occupancy_pct": "sm__maximum_warps_per_active_cycle_pct",
-    "registers_per_thread": "launch__registers_per_thread",
-    "smem_static_per_block_bytes": "launch__shared_mem_per_block_static",
-    "smem_dynamic_per_block_bytes": "launch__shared_mem_per_block_dynamic",
-    "block_size": "launch__block_size",
-    "grid_size": "launch__grid_size",
-    "dram_throughput_pct": "dram__throughput.avg.pct_of_peak_sustained_elapsed",
-    "sm_throughput_pct": "sm__throughput.avg.pct_of_peak_sustained_elapsed",
-    "l2_hit_rate_pct": "lts__t_sector_hit_rate.pct",
-    "l1_hit_rate_pct": "l1tex__t_sector_hit_rate.pct",
-    "smem_bank_conflicts_ld": "l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum",
-    "smem_bank_conflicts_st": "l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum",
-    "tensor_pipe_active_pct": "sm__pipe_tensor_op_hmma_cycles_active.avg.pct_of_peak_sustained_active",
-    "dram_bytes_read": "dram__bytes_read.sum",
-    "dram_bytes_write": "dram__bytes_write.sum",
-    "ffma_thread_inst": "smsp__sass_thread_inst_executed_op_ffma_pred_on.sum",
-    "fadd_thread_inst": "smsp__sass_thread_inst_executed_op_fadd_pred_on.sum",
-    "fmul_thread_inst": "smsp__sass_thread_inst_executed_op_fmul_pred_on.sum",
+    "duration_ns": ["gpu__time_duration.sum"],
+    "achieved_occupancy_pct": ["sm__warps_active.avg.pct_of_peak_sustained_active"],
+    "theoretical_occupancy_pct": ["sm__maximum_warps_per_active_cycle_pct"],
+    "registers_per_thread": ["launch__registers_per_thread"],
+    "smem_static_per_block_bytes": ["launch__shared_mem_per_block_static"],
+    "smem_dynamic_per_block_bytes": ["launch__shared_mem_per_block_dynamic"],
+    "block_size": ["launch__block_size"],
+    "grid_size": ["launch__grid_size"],
+    "dram_throughput_pct": ["gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed",
+                            "dram__throughput.avg.pct_of_peak_sustained_elapsed"],
+    "memory_throughput_pct": ["gpu__compute_memory_throughput.avg.pct_of_peak_sustained_elapsed"],
+    "l1tex_throughput_pct": ["l1tex__throughput.avg.pct_of_peak_sustained_elapsed"],
+    "sm_throughput_pct": ["sm__throughput.avg.pct_of_peak_sustained_elapsed"],
+    "l2_hit_rate_pct": ["lts__t_sector_hit_rate.pct"],
+    "l1_hit_rate_pct": ["l1tex__t_sector_hit_rate.pct"],
+    "smem_bank_conflicts_ld": ["l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum"],
+    "smem_bank_conflicts_st": ["l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum"],
+    "tensor_pipe_active_pct": ["sm__pipe_tensor_op_hmma_cycles_active_v2.avg.pct_of_peak_sustained_active",
+                               "sm__pipe_tensor_op_hmma_cycles_active.avg.pct_of_peak_sustained_active"],
+    "dram_bytes_read": ["dram__bytes_read.sum"],
+    "dram_bytes_write": ["dram__bytes_write.sum"],
+    # Not in --set full as plain sums. scripts/run_ncu.ps1 requests them with --metrics.
+    "ffma_thread_inst": ["smsp__sass_thread_inst_executed_op_ffma_pred_on.sum"],
+    "fadd_thread_inst": ["smsp__sass_thread_inst_executed_op_fadd_pred_on.sum"],
+    "fmul_thread_inst": ["smsp__sass_thread_inst_executed_op_fmul_pred_on.sum"],
 }
 STALL_RE = re.compile(r"^smsp__average_warps_issue_stalled_(\w+?)_per_issue_active\.ratio$")
 
@@ -77,9 +85,11 @@ def summarize(rep: Path) -> list[dict]:
             continue
         rec = dict(zip(header, row, strict=True))
         k = {"kernel": rec.get("Kernel Name"), "id": to_num(rec.get("ID", ""))}
-        for key, metric in METRICS.items():
-            if metric in rec:
-                k[key] = to_num(rec[metric])
+        for key, candidates in METRICS.items():
+            for metric in candidates:
+                if rec.get(metric, "") != "":
+                    k[key] = to_num(rec[metric])
+                    break
         stalls = {}
         for col, val in rec.items():
             m = STALL_RE.match(col)
@@ -130,6 +140,7 @@ def main() -> None:
     for k in kernels:
         print(f"  {str(k['kernel'])[:60]:60s} {k.get('duration_ns', 0) / 1e3:10.1f} us  "
               f"occ {k.get('achieved_occupancy_pct', 0):5.1f}%  dram {k.get('dram_throughput_pct', 0):5.1f}%  "
+              f"l1 {k.get('l1tex_throughput_pct', 0):5.1f}%  "
               f"regs {k.get('registers_per_thread')}  stalls {[s for s, _ in k['top_stalls']]}")
     print(f"wrote {path}")
 

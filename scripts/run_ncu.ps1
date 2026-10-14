@@ -30,7 +30,10 @@ $targetArgs = @((Join-Path $Root 'bench\profile_target.py'), '--impl', $Impl) + 
 
 # --nvtx-include restricts collection to kernels launched inside the
 # "kf_profile" range, so warmup launches and PyTorch setup kernels are skipped.
-$ncuArgs = @('--set', $Set, '--import-source', 'yes', '--nvtx', '--nvtx-include', 'kf_profile/',
+# --metrics adds the FP32 instruction counts used for roofline FLOPs, which
+# --set full only exposes as per-cycle rates (keep in sync with ncu_summary.py).
+$extra = 'smsp__sass_thread_inst_executed_op_ffma_pred_on.sum,smsp__sass_thread_inst_executed_op_fadd_pred_on.sum,smsp__sass_thread_inst_executed_op_fmul_pred_on.sum'
+$ncuArgs = @('--set', $Set, '--metrics', $extra, '--import-source', 'yes', '--nvtx', '--nvtx-include', 'kf_profile/',
              '--target-processes', 'all', '-f', '-o', $Rep, $Py) + $targetArgs
 
 Write-Host "ncu $($ncuArgs -join ' ')"
