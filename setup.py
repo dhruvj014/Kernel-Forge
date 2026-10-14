@@ -26,6 +26,7 @@ fast_math = os.environ.get("KF_FAST_MATH", "0") == "1"
 sources = [
     "csrc/bindings.cpp",
     "csrc/attention/attn_naive.cu",
+    "csrc/attention/attn_v1_fp32.cu",
 ]
 
 nvcc_flags = [

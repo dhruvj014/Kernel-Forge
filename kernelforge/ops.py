@@ -72,3 +72,29 @@ def attn_naive(
     """
     _check_qkv(q, k, v)
     return _ext().attn_naive(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]))
+
+
+ATTN_V1_HEAD_DIMS = (64, 128)
+# (Br, Bc) per config index, mirrors dispatch_config in csrc/attention/attn_v1_fp32.cu.
+ATTN_V1_CONFIGS = ((32, 32), (32, 64), (64, 32), (64, 64), (128, 32))
+
+
+def flash_attn_v1(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    causal: bool = False,
+    scale: float | None = None,
+    config: int = -1,
+) -> torch.Tensor:
+    """Fused attention v1: tiled, online softmax, FP32 math on CUDA cores. Never materializes N x N.
+
+    q, k, v: contiguous [B, H, N, D] CUDA tensors (fp16, bf16 or fp32), D in {64, 128}.
+    config: index into ATTN_V1_CONFIGS for the (Br, Bc) tile sweep, -1 for the tuned default.
+    """
+    _check_qkv(q, k, v)
+    if q.shape[-1] not in ATTN_V1_HEAD_DIMS:
+        raise ValueError(f"flash_attn_v1 supports head dim {ATTN_V1_HEAD_DIMS}, got {q.shape[-1]}")
+    if not -1 <= config < len(ATTN_V1_CONFIGS):
+        raise ValueError(f"config must be -1 or in [0, {len(ATTN_V1_CONFIGS)}), got {config}")
+    return _ext().attn_v1(q, k, v, bool(causal), _resolve_scale(scale, q.shape[-1]), int(config))
