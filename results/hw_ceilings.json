@@ -1,0 +1,433 @@
+{
+  "meta": {
+    "timestamp": "2026-10-13T16:51:45",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "compute_capability": "8.9",
+    "sm_count": 24,
+    "driver": "610.60",
+    "torch": "2.14.1+cu130",
+    "torch_cuda": "13.0",
+    "nvcc": "13.0.48",
+    "python": "3.12.0",
+    "os": "Windows-11-10.0.26300-SP0",
+    "kf_fast_math": false,
+    "power": {
+      "on_ac_power": true,
+      "power_plan": "Full Throttle Performance"
+    }
+  },
+  "device": {
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "cc": "8.9",
+    "sm_count": 24,
+    "total_global_mem_bytes": 8585216000,
+    "l2_cache_bytes": 33554432,
+    "persisting_l2_max_bytes": 23068672,
+    "smem_per_block_bytes": 49152,
+    "smem_per_block_optin_bytes": 101376,
+    "smem_per_sm_bytes": 102400,
+    "regs_per_sm": 65536,
+    "regs_per_block": 65536,
+    "max_threads_per_sm": 1536,
+    "max_threads_per_block": 1024,
+    "max_blocks_per_sm": 24,
+    "warp_size": 32,
+    "sm_clock_max_khz": 2370000,
+    "mem_clock_max_khz": 8001000,
+    "mem_bus_width_bits": 128,
+    "theoretical_dram_gbps_from_clocks": 256.03
+  },
+  "dram_bandwidth": {
+    "buffer_bytes": 536870912,
+    "block": 256,
+    "wave_blocks": 144,
+    "read": {
+      "gbps": 248.01,
+      "median_ms": 2.1647,
+      "p10_ms": 2.1586,
+      "p90_ms": 3.3065,
+      "bytes_moved": 536870912,
+      "grid": 144
+    },
+    "copy": {
+      "gbps": 234.53,
+      "median_ms": 4.5783,
+      "p10_ms": 4.5004,
+      "p90_ms": 6.0621,
+      "bytes_moved": 1073741824,
+      "grid": 288
+    },
+    "write": {
+      "gbps": 249.42,
+      "median_ms": 2.1524,
+      "p10_ms": 2.1462,
+      "p90_ms": 3.071,
+      "bytes_moved": 536870912,
+      "grid": 288
+    }
+  },
+  "torch_copy_bandwidth": {
+    "gbps": 225.13709275235547,
+    "bytes_moved": 1073741824.0,
+    "timing": {
+      "median_ms": 4.769279956817627,
+      "p10_ms": 4.586495876312256,
+      "p90_ms": 6.1184000968933105,
+      "mean_ms": 5.138864002227783,
+      "min_ms": 4.573184013366699,
+      "iters": 50,
+      "warmup": 10,
+      "l2_flushed": false
+    }
+  },
+  "matmul_precision_flags": {
+    "allow_tf32": false,
+    "allow_fp16_reduced_precision_reduction": false,
+    "allow_bf16_reduced_precision_reduction": false,
+    "allow_fp16_accumulation": false
+  },
+  "gemm": {
+    "fp16_tc_fp32acc": {
+      "best_tflops": 31.007907490386543,
+      "best_size": 4096,
+      "per_size": [
+        {
+          "m": 4096,
+          "n": 4096,
+          "k": 4096,
+          "tflops": 31.007907490386543,
+          "timing": {
+            "median_ms": 4.432384014129639,
+            "p10_ms": 4.429823875427246,
+            "p90_ms": 5.844992160797119,
+            "mean_ms": 4.866029453277588,
+            "min_ms": 4.40831995010376,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 6144,
+          "n": 6144,
+          "k": 6144,
+          "tflops": 28.48155099190954,
+          "timing": {
+            "median_ms": 16.286208152770996,
+            "p10_ms": 16.115711212158203,
+            "p90_ms": 16.480255126953125,
+            "mean_ms": 16.255713214874266,
+            "min_ms": 15.227904319763184,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 8192,
+          "n": 8192,
+          "k": 8192,
+          "tflops": 28.495198926758867,
+          "timing": {
+            "median_ms": 38.58585548400879,
+            "p10_ms": 38.09689712524414,
+            "p90_ms": 39.69535827636719,
+            "mean_ms": 38.76961898803711,
+            "min_ms": 37.928958892822266,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        }
+      ]
+    },
+    "bf16_tc_fp32acc": {
+      "best_tflops": 30.993586675980797,
+      "best_size": 4096,
+      "per_size": [
+        {
+          "m": 4096,
+          "n": 4096,
+          "k": 4096,
+          "tflops": 30.993586675980797,
+          "timing": {
+            "median_ms": 4.434432029724121,
+            "p10_ms": 4.40934419631958,
+            "p90_ms": 5.844992160797119,
+            "mean_ms": 4.877450876235962,
+            "min_ms": 4.406271934509277,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 6144,
+          "n": 6144,
+          "k": 6144,
+          "tflops": 28.446673376276106,
+          "timing": {
+            "median_ms": 16.30617618560791,
+            "p10_ms": 16.131071090698242,
+            "p90_ms": 16.544767379760742,
+            "mean_ms": 16.322742404937745,
+            "min_ms": 15.229951858520508,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 8192,
+          "n": 8192,
+          "k": 8192,
+          "tflops": 28.55810266880751,
+          "timing": {
+            "median_ms": 38.500864028930664,
+            "p10_ms": 38.172672271728516,
+            "p90_ms": 39.781375885009766,
+            "mean_ms": 38.82479103088379,
+            "min_ms": 37.91667175292969,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        }
+      ]
+    },
+    "fp32_simt": {
+      "best_tflops": 8.496943962272583,
+      "best_size": 4096,
+      "per_size": [
+        {
+          "m": 4096,
+          "n": 4096,
+          "k": 4096,
+          "tflops": 8.496943962272583,
+          "timing": {
+            "median_ms": 16.17510414123535,
+            "p10_ms": 15.950847625732422,
+            "p90_ms": 16.60006332397461,
+            "mean_ms": 16.23728057861328,
+            "min_ms": 15.212544441223145,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 6144,
+          "n": 6144,
+          "k": 6144,
+          "tflops": 8.481988258801724,
+          "timing": {
+            "median_ms": 54.687232971191406,
+            "p10_ms": 53.85728073120117,
+            "p90_ms": 55.67283248901367,
+            "mean_ms": 54.779719772338865,
+            "min_ms": 53.23571014404297,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 8192,
+          "n": 8192,
+          "k": 8192,
+          "tflops": 8.394083829937118,
+          "timing": {
+            "median_ms": 130.9864959716797,
+            "p10_ms": 129.89952087402344,
+            "p90_ms": 131.93624877929688,
+            "mean_ms": 130.91248077392578,
+            "min_ms": 128.90725708007812,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        }
+      ]
+    },
+    "fp16_tc_fp16acc_context_only": {
+      "best_tflops": 57.13824196341986,
+      "best_size": 4096,
+      "per_size": [
+        {
+          "m": 4096,
+          "n": 4096,
+          "k": 4096,
+          "tflops": 57.13824196341986,
+          "timing": {
+            "median_ms": 2.4053759574890137,
+            "p10_ms": 2.3500800132751465,
+            "p90_ms": 3.4600958824157715,
+            "mean_ms": 2.6149682903289797,
+            "min_ms": 2.3214080333709717,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 6144,
+          "n": 6144,
+          "k": 6144,
+          "tflops": 51.71354898714893,
+          "timing": {
+            "median_ms": 8.969727993011475,
+            "p10_ms": 8.128512382507324,
+            "p90_ms": 9.80684757232666,
+            "mean_ms": 8.939335670471191,
+            "min_ms": 8.037376403808594,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        },
+        {
+          "m": 8192,
+          "n": 8192,
+          "k": 8192,
+          "tflops": 52.316401945959925,
+          "timing": {
+            "median_ms": 21.016575813293457,
+            "p10_ms": 20.6376953125,
+            "p90_ms": 22.543359756469727,
+            "mean_ms": 21.31777530670166,
+            "min_ms": 19.353599548339844,
+            "iters": 50,
+            "warmup": 10,
+            "l2_flushed": false
+          }
+        }
+      ]
+    }
+  },
+  "roofline": {
+    "peak_dram_gbps": 234.53,
+    "peak_dram_source": "kf_bandwidth copy kernel (float4), measured",
+    "peak_fp16_tc_tflops": 31.007907490386543,
+    "peak_fp16_tc_source": "cuBLAS HGEMM via torch.matmul, FP32 accumulate, measured",
+    "peak_fp32_tflops": 8.496943962272583,
+    "peak_fp32_source": "cuBLAS SGEMM via torch.matmul, TF32 off, measured",
+    "ridge_fp16_tc_flop_per_byte": 132.21296844918152,
+    "ridge_fp32_flop_per_byte": 36.229667685467035
+  },
+  "clocks_before": {
+    "timestamp": "2026-10-13T16:51:18",
+    "clocks": {
+      "clocks": {
+        "graphics": "345 MHz",
+        "sm": "345 MHz",
+        "memory": "405 MHz",
+        "video": "765 MHz"
+      },
+      "applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "default_applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "deferred_clocks": {
+        "memory": "N/A"
+      },
+      "max_clocks": {
+        "graphics": "3105 MHz",
+        "sm": "3105 MHz",
+        "memory": "8001 MHz",
+        "video": "2415 MHz"
+      },
+      "max_customer_boost_clocks": {
+        "graphics": "N/A"
+      },
+      "sm_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "memory_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "clock_policy": {
+        "auto_boost": "N/A",
+        "auto_boost_default": "N/A"
+      }
+    },
+    "status": {
+      "pstate": "P8",
+      "clocks.sm": "345 MHz",
+      "clocks.mem": "405 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "power.draw": "5.63 W",
+      "temperature.gpu": "62",
+      "clocks_throttle_reasons.active": "0x0000000000000001"
+    }
+  },
+  "clocks_after": {
+    "timestamp": "2026-10-13T16:51:45",
+    "clocks": {
+      "clocks": {
+        "graphics": "2400 MHz",
+        "sm": "2400 MHz",
+        "memory": "8001 MHz",
+        "video": "2100 MHz"
+      },
+      "applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "default_applications_clocks": {
+        "graphics": "Requested functionality has been deprecated",
+        "memory": "Requested functionality has been deprecated"
+      },
+      "deferred_clocks": {
+        "memory": "N/A"
+      },
+      "max_clocks": {
+        "graphics": "3105 MHz",
+        "sm": "3105 MHz",
+        "memory": "8001 MHz",
+        "video": "2415 MHz"
+      },
+      "max_customer_boost_clocks": {
+        "graphics": "N/A"
+      },
+      "sm_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "memory_clock_samples": {
+        "duration": "Not Found",
+        "number_of_samples": "Not Found",
+        "max": "Not Found",
+        "min": "Not Found",
+        "avg": "Not Found"
+      },
+      "clock_policy": {
+        "auto_boost": "N/A",
+        "auto_boost_default": "N/A"
+      }
+    },
+    "status": {
+      "pstate": "P0",
+      "clocks.sm": "2400 MHz",
+      "clocks.mem": "8001 MHz",
+      "clocks.max.sm": "3105 MHz",
+      "power.draw": "134.20 W",
+      "temperature.gpu": "83",
+      "clocks_throttle_reasons.active": "0x0000000000000004"
+    }
+  }
+}

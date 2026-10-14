@@ -1,0 +1,115 @@
+{
+  "kernels": {
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a9pv_kernelIfEEvPKfPKT_PS3_iib": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 40,
+      "barriers": 0,
+      "cmem0_bytes": 385,
+      "demangled": "void <unnamed>::pv_kernel<float>(const float *, const T1 *, T1 *, int, int, bool)"
+    },
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a16qk_scores_kernelIfEEvPKT_S3_Pfiifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 36,
+      "barriers": 0,
+      "cmem0_bytes": 389,
+      "demangled": "void <unnamed>::qk_scores_kernel<float>(const T1 *, const T1 *, float *, int, int, float, bool)"
+    },
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a9pv_kernelI13__nv_bfloat16EEvPKfPKT_PS4_iib": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 40,
+      "barriers": 0,
+      "cmem0_bytes": 385,
+      "demangled": "void <unnamed>::pv_kernel<__nv_bfloat16>(const float *, const T1 *, T1 *, int, int, bool)"
+    },
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a16qk_scores_kernelI13__nv_bfloat16EEvPKT_S4_Pfiifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 37,
+      "barriers": 0,
+      "cmem0_bytes": 389,
+      "demangled": "void <unnamed>::qk_scores_kernel<__nv_bfloat16>(const T1 *, const T1 *, float *, int, int, float, bool)"
+    },
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a9pv_kernelI6__halfEEvPKfPKT_PS4_iib": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 40,
+      "barriers": 0,
+      "cmem0_bytes": 385,
+      "demangled": "void <unnamed>::pv_kernel<__half>(const float *, const T1 *, T1 *, int, int, bool)"
+    },
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a16qk_scores_kernelI6__halfEEvPKT_S4_Pfiifb": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 37,
+      "barriers": 0,
+      "cmem0_bytes": 389,
+      "demangled": "void <unnamed>::qk_scores_kernel<__half>(const T1 *, const T1 *, float *, int, int, float, bool)"
+    },
+    "_ZN46_GLOBAL__N__ee9764b8_13_attn_naive_cu_eeab851a19softmax_rows_kernelEPfi": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 18,
+      "barriers": 1,
+      "smem_static_bytes": 128,
+      "cmem0_bytes": 364,
+      "demangled": "<unnamed>::softmax_rows_kernel(float *, int)"
+    },
+    "_Z10vector_addPKfS0_Pfi": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 12,
+      "barriers": 0,
+      "cmem0_bytes": 380,
+      "demangled": "vector_add(const float *, const float *, float *, int)"
+    },
+    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main12write_kernelEP6float4y": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 14,
+      "barriers": 0,
+      "cmem0_bytes": 368,
+      "demangled": "<unnamed>::write_kernel(float4 *, unsigned long long)"
+    },
+    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main11copy_kernelEPK6float4PS0_y": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 16,
+      "barriers": 0,
+      "cmem0_bytes": 376,
+      "demangled": "<unnamed>::copy_kernel(const float4 *, float4 *, unsigned long long)"
+    },
+    "_ZN41_GLOBAL__N__f4927933_12_bandwidth_cu_main11read_kernelEPK6float4yPf": {
+      "arch": "sm_89",
+      "stack_bytes": 0,
+      "spill_store_bytes": 0,
+      "spill_load_bytes": 0,
+      "registers": 12,
+      "barriers": 0,
+      "cmem0_bytes": 376,
+      "demangled": "<unnamed>::read_kernel(const float4 *, unsigned long long, float *)"
+    }
+  }
+}
